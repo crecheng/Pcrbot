@@ -1,0 +1,18 @@
+﻿<Window x:Class="com.pcrbot._1.UI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:com.pcrbot._1.UI"
+        mc:Ignorable="d"
+        Title="Pcrbot设置" Height="400" Width="400">
+    <Grid>
+        <Button Content="保存" HorizontalAlignment="Left" Margin="309,341,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
+        <TextBox HorizontalAlignment="Left" Height="68" Margin="10,31,0,0" TextWrapping="Wrap" Text="请输入QQ号多个qq号请用逗号（英文）隔开" VerticalAlignment="Top" Width="80" TextChanged="TextBox_TextChanged" Name="rootMemberId"/>
+        <TextBlock HorizontalAlignment="Left" Margin="10,16,0,0" TextWrapping="Wrap" Text="管理员" VerticalAlignment="Top"/>
+        <TextBox HorizontalAlignment="Left" Height="68" Margin="118,31,0,0" TextWrapping="Wrap" Text="在哪些群使用，多个用逗号隔开" VerticalAlignment="Top" Width="82" Name="GroupId"/>
+        <TextBlock HorizontalAlignment="Left" Margin="118,16,0,0" TextWrapping="Wrap" Text="使用的群" VerticalAlignment="Top"/>
+        <Button Content="查看日志" HorizontalAlignment="Left" Margin="229,341,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="-0.067,0.961" Click="Button_Click_1"/>
+
+    </Grid>
+</Window>
