@@ -13,6 +13,11 @@
         <TextBox HorizontalAlignment="Left" Height="68" Margin="118,31,0,0" TextWrapping="Wrap" Text="在哪些群使用，多个用逗号隔开" VerticalAlignment="Top" Width="82" Name="GroupId"/>
         <TextBlock HorizontalAlignment="Left" Margin="118,16,0,0" TextWrapping="Wrap" Text="使用的群" VerticalAlignment="Top"/>
         <Button Content="查看日志" HorizontalAlignment="Left" Margin="229,341,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="-0.067,0.961" Click="Button_Click_1"/>
+        <TextBlock HorizontalAlignment="Left" Margin="218,32,0,0" TextWrapping="Wrap" Text="指令前缀" VerticalAlignment="Top"/>
+        <TextBox HorizontalAlignment="Left" Height="15" Margin="271,32,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" Name="pcrbotKey"/>
+        <CheckBox Content="每次操作都保存dat文件" HorizontalAlignment="Left" Margin="218,10,0,0" VerticalAlignment="Top" Name="SaveDatPre"/>
+        <TextBox HorizontalAlignment="Left" Height="30" Margin="279,52,0,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top" Width="86" Name="maxMember" />
+        <TextBlock HorizontalAlignment="Left" Margin="218,52,0,0" TextWrapping="Wrap" Text="最多同时出刀成员数" VerticalAlignment="Top" Width="61"/>
 
     </Grid>
 </Window>

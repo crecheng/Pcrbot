@@ -1,0 +1,25 @@
+﻿<Window x:Class="com.pcrbot._1.UI.ModifyDateWindows"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:com.pcrbot._1.UI"
+        mc:Ignorable="d"
+        Title="修改成员数据" Height="360.209" Width="585.963">
+    <Grid Margin="0,0,3.2,0" Height="334" VerticalAlignment="Top">
+        <ListBox HorizontalAlignment="Left" Height="267" Margin="5,33,0,0" VerticalAlignment="Top" Width="112" Name="GroupIdList" SelectionChanged="GroupIdList_SelectionChanged"/>
+        <ListBox HorizontalAlignment="Left" Height="267" Margin="122,33,0,0" VerticalAlignment="Top" Width="130" Name="QQIdList" SelectionChanged="QQIdList_SelectionChanged"/>
+        <Button Content="删除" HorizontalAlignment="Left" Margin="156,305,0,0" VerticalAlignment="Top" Width="65" Name="QQIdDel" Click="QQIdDel_Click"/>
+        <ListBox HorizontalAlignment="Left" Height="267" Margin="257,33,0,0" VerticalAlignment="Top" Width="99" Name="DayList" SelectionChanged="DayList_SelectionChanged"/>
+        <Button Content="删除" HorizontalAlignment="Left" Margin="277,305,0,0" VerticalAlignment="Top" Width="61" Name="DayDel" Click="DayDel_Click"/>
+        <TextBlock HorizontalAlignment="Left" Margin="10,13,0,0" TextWrapping="Wrap" Text="群号" VerticalAlignment="Top"/>
+        <TextBlock HorizontalAlignment="Left" Margin="122,16,0,0" TextWrapping="Wrap" Text="qq号" VerticalAlignment="Top"/>
+        <TextBlock HorizontalAlignment="Left" Margin="257,16,0,0" TextWrapping="Wrap" Text="日期" VerticalAlignment="Top"/>
+        <ListBox HorizontalAlignment="Left" Height="267" Margin="361,33,0,0" VerticalAlignment="Top" Width="99" Name="DmgList" SelectionChanged="DmgList_SelectionChanged"/>
+        <TextBlock HorizontalAlignment="Left" Margin="361,16,0,0" TextWrapping="Wrap" Text="伤害" VerticalAlignment="Top"/>
+        <Button Content="删除" HorizontalAlignment="Left" Margin="384,305,0,0" VerticalAlignment="Top" Width="57" Name="DmgDel" Click="DmgDel_Click"/>
+        <TextBox HorizontalAlignment="Left" Height="23" Margin="465,33,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="101" Name="NewDmg"/>
+        <Button Content="确定" HorizontalAlignment="Left" Margin="478,61,0,0" VerticalAlignment="Top" Width="75"  Name="DmgIs" Click="DmgIs_Click"/>
+
+    </Grid>
+</Window>

@@ -44,6 +44,15 @@ namespace Native.App.Export
 				Menu_menuHandler += AppData.UnityContainer.Resolve<IMenuCall> ("设置").MenuCall;	
 			}	
 			
+			/*	
+			 * Name: 修改数据	
+			 * Function: _modifyDate	
+			 */	
+			if (AppData.UnityContainer.IsRegistered<IMenuCall> ("修改数据"))	
+			{	
+				Menu_modifyDateHandler += AppData.UnityContainer.Resolve<IMenuCall> ("修改数据").MenuCall;	
+			}	
+			
 		}	
 		#endregion	
 		
@@ -60,6 +69,22 @@ namespace Native.App.Export
 			{	
 				CQMenuCallEventArgs args = new CQMenuCallEventArgs (AppData.CQApi, AppData.CQLog, "设置", "_menu");	
 				Menu_menuHandler (typeof (CQMenuExport), args);	
+			}	
+			return 0;	
+		}	
+		
+		/*	
+		 * Name: 修改数据	
+		 * Function: _modifyDate	
+		 */	
+		public static event EventHandler<CQMenuCallEventArgs> Menu_modifyDateHandler;	
+		[DllExport (ExportName = "_modifyDate", CallingConvention = CallingConvention.StdCall)]	
+		public static int Menu_modifyDate ()	
+		{	
+			if (Menu_modifyDateHandler != null)	
+			{	
+				CQMenuCallEventArgs args = new CQMenuCallEventArgs (AppData.CQApi, AppData.CQLog, "修改数据", "_modifyDate");	
+				Menu_modifyDateHandler (typeof (CQMenuExport), args);	
 			}	
 			return 0;	
 		}	

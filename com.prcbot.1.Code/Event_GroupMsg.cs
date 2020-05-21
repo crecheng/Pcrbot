@@ -7,6 +7,8 @@ using Native.Sdk.Cqp.Interface;
 using Native.Sdk.Cqp.Model;
 using Native.Sdk.Cqp.EventArgs;
 using Native.Sdk.Cqp;
+using System.IO;
+using Native.Sdk.Cqp.Enum;
 
 namespace com.pcrbot._1.Code
 {
@@ -18,21 +20,31 @@ namespace com.pcrbot._1.Code
         {
             var group = e.FromGroup;
             var groupid = group.Id;
-            if(pcrbot.ContainsKey(groupid))
-                pcrbot[groupid].PrcbotMsg(sender, e);
+            if (pcrbot.ContainsKey(groupid))
+            {
+                lock (pcrbot[groupid])
+                {
+                    pcrbot[groupid].PrcbotMsg(sender, e);
+                }
+            }
             else
             {
+                Pcrbot tempP = null;
                 try
                 {
-                    Pcrbot tempP = new Pcrbot(groupid,group.GetGroupInfo().Name);
-                    pcrbot.Add(groupid, tempP);
-                    pcrbot[groupid].PrcbotMsg(sender, e);
+                    tempP = new Pcrbot(groupid,group.GetGroupInfo().Name);
                 }
                 catch (Exception ex)
                 {
-                    e.CQLog.Warning(ex.Message);
+                    e.CQLog.Warning("创建Pcrbot对象失败"+ex.Message);
+                }
+                if (tempP != null)
+                {
+                    pcrbot.Add(groupid, tempP);
+                    pcrbot[groupid].PrcbotMsg(sender, e);
                 }
             }
+
         }
 
         public static Dictionary<long, Pcrbot> GetPrcbot()

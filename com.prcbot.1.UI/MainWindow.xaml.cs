@@ -32,15 +32,36 @@ namespace com.pcrbot._1.UI
         string[] str;
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            str = new string[2];
+            str = new string[5];
             str[0] = rootMemberId.Text;
             str[1] = GroupId.Text;
+            str[2] = pcrbotKey.Text;
+            str[3] = maxMember.Text;
+            str[4] = (SaveDatPre.IsChecked==true) ? "1" : "0";
             var rootMemberList = rootMemberId.Text.Split(',');
             var GroupIdList = GroupId.Text.Split(',');
-            Dictionary<long, Pcrbot> pcrbot = Event_GroupMsg.GetPrcbot();
+            Dictionary<long, Pcrbot> pcrbot = null;
+            try
+            {
+                 pcrbot= Event_GroupMsg.GetPrcbot();
+
+            }catch(Exception ex)
+            {
+                if (Common.CQLog != null)
+                {
+                    Common.CQLog.Warning("获取pcrbot失败" + ex.Message);
+                }
+            }
             foreach (var p in pcrbot)
             {
+                p.Value.key = str[2];
                 p.Value.rootMember.Clear();
+                int.TryParse(str[3], out int max);
+                if (max >= 1)
+                    p.Value.MaxAttackCount = max;
+                else
+                    maxMember.Text = "1";
+                p.Value.SaveDatPer = str[4].Equals("1");
                 foreach (var id in rootMemberList)
                 {
                     if (long.TryParse(id, out long temp))
@@ -89,6 +110,18 @@ namespace com.pcrbot._1.UI
                 if (str.Length >= 2)
                 {
                     GroupId.Text = str[1];
+                }
+                if (str.Length >= 3)
+                {
+                    pcrbotKey.Text = str[2];
+                }
+                if (str.Length >= 4)
+                {
+                    maxMember.Text = str[3];
+                }
+                if (str.Length >= 5)
+                {
+                    SaveDatPre.IsChecked = str[4].Equals("1");
                 }
             }
         }

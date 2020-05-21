@@ -64,7 +64,7 @@ namespace Native.App.Export
 			// 反射获取 AppData 实例	
 			Type appDataType = typeof (AppData);	
 			// 注册一个 CQApi 实例	
-			AppInfo appInfo = new AppInfo ("com.pcrbot.1", 1, 9, "Pcrbot", "1.0.3", 1, "crecheng", "公主连结bot", authCode);	
+			AppInfo appInfo = new AppInfo ("com.pcrbot.1", 1, 9, "Pcrbot", "1.0.7", 1, "crecheng", "公主连结bot", authCode);	
 			appDataType.GetRuntimeProperty ("CQApi").GetSetMethod (true).Invoke (null, new object[] { new CQApi (appInfo) });	
 			AppData.UnityContainer.RegisterInstance<CQApi> ("com.pcrbot.1", AppData.CQApi);	
 			// 向容器注册一个 CQLog 实例	

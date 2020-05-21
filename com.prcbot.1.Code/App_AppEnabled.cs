@@ -14,9 +14,15 @@ namespace com.pcrbot._1.Code
     {
         public void AppEnable(object sender, CQAppEnableEventArgs e)
         {
-            Common.CQApi = e.CQApi;
-            Common.CQLog = e.CQLog;
-            Common.ae = e;
+            try
+            {
+                Common.CQApi = e.CQApi;
+                Common.CQLog = e.CQLog;
+                Common.ae = e;
+            }catch(Exception ex)
+            {
+                e.CQLog.Warning("获取common失败" + ex.Message);
+            }
         }
     }
 }

@@ -16,5 +16,6 @@ namespace com.pcrbot._1.Code
         public static CQLog CQLog { get; set; }
         public static CQAppEnableEventArgs ae { get; set; }
         public static CQGroupMessageEventArgs gm { get; set; }
+        public static bool ModifyWindowsOpen { get; set; }
     }
 }

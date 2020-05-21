@@ -23,6 +23,7 @@ namespace Native.Core
 		{
             unityContainer.RegisterType<IGroupMessage, Event_GroupMsg>("群消息处理");
             unityContainer.RegisterType<IMenuCall, Menu>("设置");
+            unityContainer.RegisterType<IMenuCall, ModifyDate>("修改数据");
             unityContainer.RegisterType<IAppEnable, App_AppEnabled>("应用已被启用");
         }
 	}
