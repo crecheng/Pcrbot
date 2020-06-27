@@ -15,9 +15,14 @@
         <Button Content="查看日志" HorizontalAlignment="Left" Margin="229,341,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="-0.067,0.961" Click="Button_Click_1"/>
         <TextBlock HorizontalAlignment="Left" Margin="218,32,0,0" TextWrapping="Wrap" Text="指令前缀" VerticalAlignment="Top"/>
         <TextBox HorizontalAlignment="Left" Height="15" Margin="271,32,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" Name="pcrbotKey"/>
-        <CheckBox Content="每次操作都保存dat文件" HorizontalAlignment="Left" Margin="218,10,0,0" VerticalAlignment="Top" Name="SaveDatPre"/>
+        <CheckBox Content="自动保存数据" HorizontalAlignment="Left" Margin="218,10,0,0" VerticalAlignment="Top" Name="SaveDatPre"/>
         <TextBox HorizontalAlignment="Left" Height="30" Margin="279,52,0,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top" Width="86" Name="maxMember" />
         <TextBlock HorizontalAlignment="Left" Margin="218,52,0,0" TextWrapping="Wrap" Text="最多同时出刀成员数" VerticalAlignment="Top" Width="61"/>
+        <ListBox HorizontalAlignment="Left" Height="100" Margin="10,104,0,0" VerticalAlignment="Top" Width="355" Name="strList" SelectionChanged="StrList_SelectionChanged"/>
+        <TextBox HorizontalAlignment="Left" Height="43" Margin="10,209,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="294" Name="modifyText"/>
+        <Button Content="修改" HorizontalAlignment="Left" Margin="309,209,0,0" VerticalAlignment="Top" Width="56" Height="19" Name="isModify" Click="IsModify_Click"/>
+        <Button Content="重置" HorizontalAlignment="Left" Margin="309,233,0,0" VerticalAlignment="Top" Width="56" Height="19" Click="Button_Click_2"/>
+        <TextBox HorizontalAlignment="Left" Height="19" Margin="10,341,0,0" TextWrapping="Wrap" Text="交流群：782125099" VerticalAlignment="Top" Width="120"/>
 
     </Grid>
 </Window>

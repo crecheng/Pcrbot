@@ -46,6 +46,7 @@
     <Compile Include="App_AppEnabled.cs" />
     <Compile Include="Common.cs" />
     <Compile Include="Event_GroupMsg.cs" />
+    <Compile Include="MyString.cs" />
     <Compile Include="Pcrbot.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

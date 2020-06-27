@@ -9,6 +9,7 @@ using Native.Sdk.Cqp.EventArgs;
 using Native.Sdk.Cqp.Enum;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
+using Native.Sdk.Cqp;
 
 namespace com.pcrbot._1.Code
 {
@@ -42,7 +43,9 @@ namespace com.pcrbot._1.Code
         private bool delDate = false;
         public int MaxAttackCount = 1;
         public bool SaveDatPer = false;
+        private List<long> UnRemind = new List<long>();
         private CQGroupMessageEventArgs e;
+        ClubFight clubFight = new ClubFight();
 
         public Pcrbot()
         {
@@ -93,7 +96,7 @@ namespace com.pcrbot._1.Code
             {
                 if (isRun)
                 {
-                    ClubFight(e);
+                    ClubFightMsg(e);
                 }
                 if (rootMember.Contains(e.FromQQ.Id))
                 {
@@ -130,7 +133,7 @@ namespace com.pcrbot._1.Code
                 return true;
         }
 
-        private void ClubFight(CQGroupMessageEventArgs e)
+        private void ClubFightMsg(CQGroupMessageEventArgs e)
         {
 
             String msg = e.Message.Text;
@@ -149,6 +152,7 @@ namespace com.pcrbot._1.Code
                     if (e.Message.Text.Equals("是"))
                     {
                         memberDate.Clear();
+
                         e.FromGroup.SendGroupMessage("成员出刀数据删除！");
                     }
                     else
@@ -157,651 +161,20 @@ namespace com.pcrbot._1.Code
                     }
                 }
             }
-            if (msgA[0].Equals("boss录入"))
-            {
-                if (isRoot(e.FromQQ.Id))
-                {
-                    if (msgA.Length > 1)
-                    {
-                        e.CQLog.Debug("" + msgA.Length);
-                        bool tempb = true;
-                        targetBoss = 0;
-                        AttackMembers = new Dictionary<long, int>();
-                        Attack = false;
-                        week = 1;
-                        AttackMember = 0;
-                        bossDate = new int[msgA.Length - 1];
-                        boss = new int[msgA.Length - 1];
-                        for (int i = 1; i < msgA.Length; i++)
-                        {
-                            int temp;
-                            if (int.TryParse(msgA[i], out temp))
-                            {
-                                boss[i - 1] = temp * 10000;
-                                bossDate[i - 1] = temp * 10000;
-                            }
-                            else
-                            {
-                                tempb = false;
-                                e.FromGroup.SendGroupMessage("正确录入" + i + "个\n请正确输入，后续应为整数，且单位为万\n例如\n——\nboss录入 200\n——\n表示录入1个200w血boss");
-                                break;
-                            }
-                        }
-                        if (tempb)
-                        {
-                            string temp = "成功录入" + boss.Length + "个数据";
-                            e.FromGroup.SendGroupMessage(temp);
-                            SaveLog(MemberName(e) + "  " + temp);
-                        }
-                    }
-                    else
-                    {
-                        e.FromGroup.SendGroupMessage("请正确输入，后续应为整数，且单位为万\n例如\n——\nboss录入 200\n——\n表示录入1个200w血boss");
-                    }
-                }
-                else
-                {
-                    e.FromGroup.SendGroupMessage("你不是管理者账户，无法进行此操作！");
-                }
-            }
-            else if (msgA[0].Equals("申请出刀"))
-            {
-                if (bossDate != null)
-                {
-                    if (MaxAttackCount == 1)
-                    {
-                        if (Attack)
-                        {
-                            e.FromGroup.SendGroupMessage(MemberName(e, AttackMember) + "正在攻击boss，请稍等！");
-                        }
-                        else
-                        {
-                            if (tree.ContainsKey(e.FromQQ.Id))
-                            {
-                                e.FromGroup.SendGroupMessage(MemberName(e) + " 已挂树，" + "无法出刀");
-                            }
-                            else
-                            {
-                                Attack = true;
-                                AttackMember = e.FromQQ.Id;
-                                string temp = MemberName(e) + "  已开始挑战boss";
-                                e.FromGroup.SendGroupMessage(temp + "\n现在" + week + "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
-                                SaveLog(temp);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (MaxAttackCount > AttackMembers.Count)
-                        {
-                            if (!AttackMembers.ContainsKey(e.FromQQ.Id))
-                            {
-                                if (tree.ContainsKey(e.FromQQ.Id))
-                                {
-                                    e.FromGroup.SendGroupMessage(MemberName(e) + " 已挂树，" + "无法出刀");
-                                }
-                                else
-                                {
-                                    AttackMembers.Add(e.FromQQ.Id, week * 10 + targetBoss);
-                                    string temp = MemberName(e) + "  已开始挑战boss\n";
-                                    e.FromGroup.SendGroupMessage(temp + AllAttackMember(e) + "正在挑战boss\n现在" + week + "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
-                                    SaveLog(temp);
-                                }
-                            }
-                        }
-                        else
-                        {
-                            e.FromGroup.SendGroupMessage(AllAttackMember(e) + "正在挑战boss\n同时挑战人数达到设置上限！");
-                        }
-                    }
-                }
-                else
-                {
-                    e.FromGroup.SendGroupMessage("暂无boss数据，请录入！");
-                }
-            }
-            else if (msgA[0].Equals("完成"))
-            {
-                if (MaxAttackCount == 1)
-                {
-                    if (e.FromQQ.Id == AttackMember)
-                    {
-                        int damage;
-                        if (msgA.Length < 2)
-                        {
-                            e.FromGroup.SendGroupMessage("请在“完成”后空格后输入你的伤害或输入“击杀”");
 
-                        }
-                        else
-                        {
-                            if (msgA[1].Equals("击杀"))
-                            {
-                                Attack = false;
-                                AttackMember = 0;
-                                int dmg = bossDate[targetBoss];
-                                bossDate[targetBoss] = 0;
-                                targetBoss++;
-                                if (targetBoss == boss.Length)
-                                {
-                                    week++;
-                                    for (int i = 0; i < boss.Length - 1; i++)
-                                    {
-                                        bossDate[i] = boss[i];
-                                    }
-                                }
-                                targetBoss %= boss.Length;
-                                string temp = MemberName(e) + " 已完成挑战boss";
-                                e.FromGroup.SendGroupMessage(temp + "\n现在" + week +
-                                        "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
-                                SaveLog(temp + " 击杀 ");
-                                
-                                Record(e, e.FromQQ.Id, dmg);
-                                SaveDate(e, SaveDatPer);
-                                tree.Clear();
-                            }
-                            else if (int.TryParse(msgA[1], out damage))
-                            {
-                                if (damage > bossDate[targetBoss] || damage < 0)
-                                {
-                                    e.FromGroup.SendGroupMessage("请正确输入伤害，如果已击杀请输入“击杀”");
-                                }
-                                else
-                                {
-                                    bossDate[targetBoss] -= damage;
-                                    CheackBossBlood();
-                                    Attack = false;
-                                    AttackMember = 0;
-                                    CheackBossBlood();
-                                    string temp = MemberName(e) + " 已完成挑战boss";
-                                    e.FromGroup.SendGroupMessage(temp + "\n现在" + week +
-                                        "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
-                                    SaveLog(temp + " " + damage);
-                                    
-                                    Record(e, e.FromQQ.Id, damage);
-                                    SaveDate(e, SaveDatPer);
-                                }
-                            }
-                        }
-                    }
-                }
-                else
+            foreach (var answer in MyString.str)
+            {
+                if (answer.Value.Equals(msgA[0]))
                 {
-                    if (AttackMembers.ContainsKey(e.FromQQ.Id))
-                    {
-                        int damage;
-                        if (msgA.Length < 2)
-                        {
-                            e.FromGroup.SendGroupMessage("请在“完成”后空格后输入你的伤害或输入“击杀”");
+                    clubFight.MsgHandle(msgA, answer.Key, e, this);
+                }
+            }
+        }
 
-                        }
-                        else
-                        {
-                            if (msgA[1].Equals("击杀"))
-                            {
-                                if (AttackMembers[e.FromQQ.Id] == week * 10 + targetBoss)
-                                {
-                                    AttackMembers.Remove(e.FromQQ.Id);
-                                    int dmg = bossDate[targetBoss];
-                                    bossDate[targetBoss] = 0;
-                                    targetBoss++;
-                                    if (targetBoss == boss.Length)
-                                    {
-                                        week++;
-                                        for (int i = 0; i < boss.Length; i++)
-                                        {
-                                            bossDate[i] = boss[i];
-                                        }
-                                    }
-                                    targetBoss %= boss.Length;
-                                    string temp = MemberName(e) + " 已完成挑战boss";
-                                    e.FromGroup.SendGroupMessage(temp + "\n现在" + week +
-                                            "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
-                                    SaveLog(temp + " 击杀 ");
-                                    
-                                    Record(e, e.FromQQ.Id, dmg);
-                                    SaveDate(e, SaveDatPer);
-                                    tree.Clear();
-                                }
-                                else
-                                {
-                                    AttackMembers.Remove(e.FromQQ.Id);
-                                    e.FromGroup.SendGroupMessage("你已跨boss结算，当前数据不记录!");
-                                }
-                            }
-                            else if (int.TryParse(msgA[1], out damage))
-                            {
-                                if (damage > bossDate[targetBoss] || damage < 0)
-                                {
-                                    e.FromGroup.SendGroupMessage("请正确输入伤害，如果已击杀请输入“击杀”");
-                                }
-                                else
-                                {
-                                    if (AttackMembers[e.FromQQ.Id] == week * 10 + targetBoss)
-                                    {
-
-
-                                        bossDate[targetBoss] -= damage;
-                                        CheackBossBlood();
-                                        Attack = false;
-                                        AttackMembers.Remove(e.FromQQ.Id);
-                                        string temp = MemberName(e) + " 已完成挑战boss";
-                                        e.FromGroup.SendGroupMessage(temp + "\n现在" + week +
-                                            "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
-                                        SaveLog(temp + " " + damage);
-                                        
-                                        Record(e, e.FromQQ.Id, damage);
-                                        SaveDate(e, SaveDatPer);
-                                    }
-                                    else
-                                    {
-                                        AttackMembers.Remove(e.FromQQ.Id);
-                                        e.FromGroup.SendGroupMessage("你已跨boss结算，当前数据不记录!");
-                                    }
-                                }
-
-                            }
-                        }
-
-                    }
-                }
-            }
-            else if (msgA[0].Equals("挂树"))
-            {
-                if (MaxAttackCount == 1)
-                {
-                    if (e.FromQQ == AttackMember)
-                    {
-                        var member = e.FromQQ.Id;
-                        tree.Add(member, week * 10 + targetBoss);
-                        string temp = MemberName(e) + " 已挂树";
-                        e.FromGroup.SendGroupMessage(temp);
-                        Attack = false;
-                        AttackMember = 0;
-                        SaveLog(temp);
-                    }
-                }
-                else
-                {
-                    if (AttackMembers.ContainsKey(e.FromQQ.Id))
-                    {
-                        if (AttackMembers[e.FromQQ.Id] == week * 10 + targetBoss)
-                        {
-                            var member = e.FromQQ.Id;
-                            tree.Add(member, week * 10 + targetBoss);
-                            string temp = MemberName(e) + " 已挂树";
-                            e.FromGroup.SendGroupMessage(temp);
-                            AttackMembers.Remove(e.FromQQ.Id);
-                            SaveLog(temp);
-                        }
-                        else
-                        {
-                            AttackMembers.Remove(e.FromQQ.Id);
-                            e.FromGroup.SendGroupMessage("你已跨boss结算，当前数据不记录!");
-                        }
-                    }
-                }
-            }
-            else if (msgA[0].Equals("查树"))
-            {
-                String sendtext = "挂树成员：\n";
-                foreach (var t in tree)
-                {
-                    sendtext += MemberName(e, t.Key) + "\n";
-                }
-                e.FromGroup.SendGroupMessage(sendtext);
-            }
-            else if (msgA[0].Equals("查看"))
-            {
-                if (bossDate != null)
-                {
-                    if (MaxAttackCount == 1)
-                    {
-                        e.FromGroup.SendGroupMessage((Attack ? MemberName(e, AttackMember) + "正在挑战boss\n" : "")
-                            + "当前" + week + "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
-                    }
-                    else
-                        e.FromGroup.SendGroupMessage(AllAttackMember(e) + (AttackMembers.Count > 0 ? "正在挑战boss\n" : "")
-                            + "当前" + week + "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
-                }
-                else
-                {
-                    e.FromGroup.SendGroupMessage("暂无boss数据，请录入！");
-                }
-            }
-            else if (msgA[0].Equals("强行下树"))
-            {
-                if (tree.ContainsKey(e.FromQQ.Id))
-                {
-                    if (msgA.Length >= 2)
-                    {
-                        int damage;
-                        if (msgA.Length < 2)
-                        {
-                            e.FromGroup.SendGroupMessage("请在“强行下树”后空格后输入你的伤害或击杀");
-
-                        }
-                        else
-                        {
-                            if (msgA[1].Equals("击杀"))
-                            {
-                                Attack = false;
-                                AttackMembers[0] = 0;
-                                int dmg = bossDate[targetBoss];
-                                bossDate[targetBoss] = 0;
-                                targetBoss++;
-                                if (targetBoss == boss.Length)
-                                {
-                                    week++;
-                                    for (int i = 0; i < boss.Length; i++)
-                                    {
-                                        bossDate[i] = boss[i];
-                                    }
-                                }
-                                targetBoss %= boss.Length;
-                                string temp = MemberName(e) + "已强行下树";
-                                e.FromGroup.SendGroupMessage(temp + "\n现在" + week +
-                                        "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
-                                tree.Remove(e.FromQQ.Id);
-                                tree.Clear();
-                                SaveLog(temp + " 击杀");
-                                
-                                Record(e, e.FromQQ.Id, dmg);
-                                SaveDate(e, SaveDatPer);
-                            }
-                            else if (int.TryParse(msgA[1], out damage))
-                            {
-                                if (damage > bossDate[targetBoss] || damage < 0)
-                                {
-                                    e.FromGroup.SendGroupMessage("请正确输入伤害，如果已击杀请输入“击杀”");
-                                }
-                                else
-                                {
-                                    bossDate[targetBoss] -= damage;
-                                    CheackBossBlood();
-                                    string temp = MemberName(e) + "已强行下树";
-                                    e.FromGroup.SendGroupMessage(temp + "\n现在" + week +
-                                        "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
-                                    tree.Remove(e.FromQQ.Id);
-                                    SaveLog(temp + " " + damage);
-                                   
-                                    Record(e, e.FromQQ.Id, damage);
-                                    SaveDate(e, SaveDatPer);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            else if (msgA[0].Equals("修正"))
-            {
-                if (isRoot(e.FromQQ.Id))
-                {
-                    if (bossDate != null)
-                    {
-                        int temptar = 0;
-                        int tempweek = 1;
-                        int tempboss = 0;
-                        if (msgA.Length >= 4)
-                        {
-                            if (int.TryParse(msgA[1], out tempweek) && int.TryParse(msgA[2], out temptar) && int.TryParse(msgA[3], out tempboss))
-                            {
-                                week = tempweek;
-                                for (int i = 0; i < boss.Length - 1; i++)
-                                {
-                                    bossDate[i] = boss[i];
-                                }
-                                if (temptar > boss.Length || temptar < 0)
-                                {
-                                    e.FromGroup.SendGroupMessage("请正确输入当前第几个boss！");
-                                }
-                                else
-                                {
-                                    targetBoss = temptar - 1;
-                                }
-                                if (tempboss > boss[targetBoss] || tempboss <= 0)
-                                {
-                                    e.FromGroup.SendGroupMessage("请正确输入当前boss血量!");
-                                }
-                                else
-                                {
-                                    bossDate[targetBoss] = tempboss;
-                                }
-
-                                e.FromGroup.SendGroupMessage("当前" + week + "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
-                                SaveLog(MemberName(e) + " 修正了boss数据");
-
-                            }
-                            else
-                            {
-                                e.FromGroup.SendGroupMessage("请正确输入！\n修正 [周目] [当前第几个boss] [当前boss血量]");
-                            }
-                        }
-                        else
-                        {
-                            e.FromGroup.SendGroupMessage("请正确输入！\n修正 [周目] [当前第几个boss] [当前boss血量]");
-                        }
-                    }
-                    else
-                    {
-                        e.FromGroup.SendGroupMessage("暂无boss数据，请录入！");
-                    }
-                }
-                else
-                {
-                    e.FromGroup.SendGroupMessage("你不是管理者账户，无法进行此操作！");
-                }
-            }
-            else if (msgA[0].Equals("出刀数据"))
-            {
-                if (isRoot(e.FromQQ.Id))
-                {
-                    string s = string.Empty;
-                    if (msgA.Length >= 2 && msgA[1].Equals("今天"))
-                    {
-                        int attackTimesAll = 0;
-                        foreach (var d in memberDate)
-                        {
-                            s += d.Value.LookDateRoot(Day());
-                            attackTimesAll += d.Value.DayAttack(Day());
-                        }
-                        s += "今日总刀数 " + attackTimesAll + "刀\n";
-                    }
-                    else
-                    {
-                        foreach (var d in memberDate)
-                        {
-                            s += d.Value.LookDateRoot();
-                        }
-                    }
-                    e.FromGroup.SendGroupMessage(s + "更详细的数据请看日志文件");
-                }
-                else
-                {
-                    if (memberDate.ContainsKey(e.FromQQ.Id))
-                    {
-                        e.FromGroup.SendGroupMessage(memberDate[e.FromQQ.Id].LookDate(msgA.Length >= 2));
-                    }
-                    else
-                    {
-                        e.FromGroup.SendGroupMessage("暂无你的出刀数据!");
-                    }
-                }
-            }
-            else if (msgA[0].Equals("清除数据"))
-            {
-                if (isRoot(e.FromQQ.Id))
-                {
-                    e.FromGroup.SendGroupMessage("即将清除成员的出刀，确认？\n[是/否]");
-                    delDate = true;
-                }
-                else
-                {
-                    e.FromGroup.SendGroupMessage("你不是管理者!");
-
-                }
-            }
-            else if (msgA[0].Equals("解除出刀"))
-            {
-                if (isRoot(e.FromQQ.Id))
-                {
-                    Attack = false;
-                    AttackMember = 0;
-                    AttackMembers.Clear();
-                    e.FromGroup.SendGroupMessage("解除出刀成功！");
-                }
-            }
-            else if (msgA[0].Equals("砍树"))
-            {
-                if (isRoot(e.FromQQ.Id))
-                {
-                    tree.Clear();
-                    e.FromGroup.SendGroupMessage("砍树成功！");
-                }
-            }
-            else if (msgA[0].Equals("代打"))
-            {
-                if (isRoot(e.FromQQ.Id))
-                {
-                    if (msgA.Length < 3||e.Message.CQCodes.Count<=0)
-                    {
-                        e.FromGroup.SendGroupMessage("请正确输入代打数据 格式为：\n代打 伤害(或击杀) at(@)代打账号拥有者");
-                    }
-                    else
-                    {
-                        var qq = e.Message.CQCodes.First();
-                        long qqid = 0;
-                        if (qq.Function == CQFunction.At)
-                        {
-                            if (qq.Items.ContainsKey("qq"))
-                            {
-                                long.TryParse(qq.Items["qq"],out qqid);
-                            }
-                        }
-                        if (qqid == 0)
-                        {
-                            e.FromGroup.SendGroupMessage("请正确输入代打数据 格式为：\n代打 伤害(或击杀) at(@)代打账号拥有者");
-                            
-                        }
-                        else if (msgA[1].Equals("击杀"))
-                        {
-                            int dmg = bossDate[targetBoss];
-                            bossDate[targetBoss] = 0;
-                            targetBoss++;
-                            if (targetBoss == boss.Length)
-                            {
-                                week++;
-                                for (int i = 0; i < boss.Length; i++)
-                                {
-                                    bossDate[i] = boss[i];
-                                }
-                            }
-                            targetBoss %= boss.Length;
-                            string temp = MemberName(e,qqid) + " 已完成挑战boss（代打）";
-                            e.FromGroup.SendGroupMessage(temp + "\n现在" + week +
-                                    "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
-                            SaveLog(temp + " 击杀 ");
-
-                            Record(e, qqid, dmg);
-                            SaveDate(e, SaveDatPer);
-                            tree.Clear();
-                        }
-                        else if (int.TryParse(msgA[1], out int damage))
-                        {
-                            if (damage > bossDate[targetBoss] || damage < 0)
-                            {
-                                e.FromGroup.SendGroupMessage("请正确输入伤害，如果已击杀请输入“击杀”");
-                            }
-                            else
-                            {
-                                bossDate[targetBoss] -= damage;
-                                CheackBossBlood();
-                                string temp = MemberName(e,qqid) + " 已完成挑战boss（代打）";
-                                e.FromGroup.SendGroupMessage(temp + "\n现在" + week +
-                                    "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
-                                SaveLog(temp + " " + damage);
-                                Record(e, qqid, damage);
-                                SaveDate(e, SaveDatPer);
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    e.FromGroup.SendGroupMessage("只有管理者才能输入代打数据！");
-                }
-            }
-            else if (msgA[0].Equals("挑战"))
-            {
-                if (isRoot(e.FromQQ.Id))
-                {
-                    if (msgA.Length < 3 || e.Message.CQCodes.Count <= 0)
-                    {
-                        e.FromGroup.SendGroupMessage("请正确输入数据 格式为：\n挑战 伤害 at(@)账号拥有者");
-                    }
-                    else
-                    {
-                        var qq = e.Message.CQCodes.First();
-                        long qqid = 0;
-                        if (qq.Function == CQFunction.At)
-                        {
-                            if (qq.Items.ContainsKey("qq"))
-                            {
-                                long.TryParse(qq.Items["qq"], out qqid);
-                            }
-                        }
-                        if (qqid == 0)
-                        {
-                            e.FromGroup.SendGroupMessage("请正确输入代打数据 格式为：\n挑战 伤害 at(@)账号拥有者");
-
-                        }
-                        else if (int.TryParse(msgA[1], out int damage))
-                        {
-                            if (damage > bossDate[targetBoss] || damage < 0)
-                            {
-                                e.FromGroup.SendGroupMessage("请正确输入伤害！");
-                            }
-                            else
-                            {
-                                bossDate[targetBoss] -= damage;
-                                CheackBossBlood();
-                                string temp = MemberName(e, qqid) + " 已完成挑战boss（手动输入）";
-                                e.FromGroup.SendGroupMessage(temp + "\n现在" + week +
-                                    "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
-                                SaveLog(temp + " " + damage);
-                                Record(e, qqid, damage);
-                                SaveDate(e, SaveDatPer);
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    e.FromGroup.SendGroupMessage("只有管理者才能手动输入挑战数据！");
-                }
-            }
-            else if (msgA[0].Equals("读取"))
-            {
-                if (isRoot(e.FromQQ.Id))
-                {
-                    LoadDate(e);
-                }
-            }
-            else if (msgA[0].Equals("保存"))
-            {
-                if (isRoot(e.FromQQ.Id))
-                {
-                    if (memberDate.Count > 0)
-                    {
-                        SaveDate(e, true,true);
-                        SaveMemberDate();
-                    }
-                }
-            }
-            else if (msgA[0].Equals("指令详情"))
-            {
-                e.FromGroup.SendGroupMessage("boss录入\n", "申请出刀\n", "完成\n", "挂树\n", "强行下树\n", "查树\n", "查看\n", "修正\n", "出刀数据\n");
-
-            }
+        public void BossBloodSub(int dmg)
+        {
+            bossDate[targetBoss] -= dmg;
+            CheackBossBlood();
         }
 
         private bool NeedChangeDate(string[] msgA)
@@ -890,6 +263,7 @@ namespace com.pcrbot._1.Code
 
         readonly string setPath = @"data/app/com.prcbot";
         readonly string setPathData = @"data/app/com.prcbot/set.data";
+        readonly string strPathData = @"data\app\com.prcbot\str.data";
 
         private void Save()
         {
@@ -1074,6 +448,26 @@ namespace com.pcrbot._1.Code
                     }
                 }
             }
+
+            if (File.Exists(strPathData))
+                SetMyStr(File.ReadAllLines(strPathData));
+            else
+                MyString.ResetStr();
+        }
+
+        private void SetMyStr(string[] s)
+        {
+            if (s != null)
+            {
+                MyString.ResetStr();
+                for (int i = 1; i < s.Length; i += 2)
+                {
+                    if (MyString.str.ContainsKey(s[i - 1]))
+                        MyString.str[s[i - 1]] = s[i];
+                    else
+                        MyString.str.Add(s[i - 1], s[i]);
+                }
+            }
         }
 
         private string MemberName(CQGroupMessageEventArgs e)
@@ -1225,6 +619,869 @@ namespace com.pcrbot._1.Code
             }
         }
 
+        class ClubFight
+        {
+            CQGroupMessageEventArgs e;
+            Pcrbot p;
+            string[] msg;
+            public void MsgHandle(string[] msg, string answer, CQGroupMessageEventArgs e, Pcrbot p)
+            {
+                this.e = e;
+                this.p = p;
+                this.msg = msg;
+                switch (answer)
+                {
+                    case "boss录入":
+                        BossDateInput();
+                        break;
+                    case "申请出刀":
+                        ApplyAttack();
+                        break;
+                    case "完成":
+                        FinishAttack();
+                        break;
+                    case "挂树":
+                        UpTree();
+                        break;
+                    case "查树":
+                        LookTree();
+                        break;
+                    case "查看":
+                        LookBoss();
+                        break;
+                    case "强行下树":
+                        DownTree();
+                        break;
+                    case "修正":
+                        ModifyBoss();
+                        break;
+                    case "出刀数据":
+                        AttackDate();
+                        break;
+                    case "清除数据":
+                        DelDate();
+                        break;
+                    case "解除出刀":
+                        DelAttackMember();
+                        break;
+                    case "砍树":
+                        CutTree();
+                        break;
+                    case "代打":
+                        HelpAttack1();
+                        break;
+                    case "挑战":
+                        HelpAttack2();
+                        break;
+                    case "读取":
+                        Load();
+                        break;
+                    case "保存":
+                        Save();
+                        break;
+                    case "指令详情":
+                        Help();
+                        break;
+                    case "全员入会":
+                        JoinAll();
+                        break;
+                    case "入会":
+                        JoinA();
+                        break;
+                    case "退会":
+                        DelMember();
+                        break;
+                    case "催刀":
+                        Remind();
+                        break;
+                }
+            }
+
+            void SendMsg(string s)
+            {
+                e.FromGroup.SendGroupMessage(s);
+            }
+
+            void BossDateInput()
+            {
+                
+                if (p.isRoot(e.FromQQ.Id))
+                {
+                    if (msg.Length > 1)
+                    {
+                        e.CQLog.Debug("" + msg.Length);
+                        bool tempb = true;
+                        p.targetBoss = 0;
+                        p.AttackMembers = new Dictionary<long, int>();
+                        p.Attack = false;
+                        p.week = 1;
+                        p.AttackMember = 0;
+                        p.bossDate = new int[msg.Length - 1];
+                        p.boss = new int[msg.Length - 1];
+                        for (int i = 1; i < msg.Length; i++)
+                        {
+                            int temp;
+                            if (int.TryParse(msg[i], out temp))
+                            {
+                                p.boss[i - 1] = temp * 10000;
+                                p.bossDate[i - 1] = temp * 10000;
+                            }
+                            else
+                            {
+                                tempb = false;
+                                SendMsg("正确录入" + i + "个\n请正确输入，后续应为整数，且单位为万\n例如\n——\nboss录入 200\n——\n表示录入1个200w血boss");
+                                break;
+                            }
+                        }
+                        if (tempb)
+                        {
+                            string temp = "成功录入" + p.boss.Length + "个数据";
+                            e.FromGroup.SendGroupMessage(temp);
+                            p.SaveLog(p.MemberName(e) + "  " + temp);
+                        }
+                    }
+                    else
+                    {
+                        SendMsg("请正确输入，后续应为整数，且单位为万\n例如\n——\nboss录入 200\n——\n表示录入1个200w血boss");
+                    }
+                }
+                else
+                {
+                    SendMsg(MyString.str["你不是管理者账户，无法进行此操作！"]);
+                }
+            }
+
+            void ApplyAttack()
+            {
+                if (p.bossDate != null)
+                {
+                    if (p.MaxAttackCount == 1)
+                    {
+                        if (p.Attack)
+                        {
+                            e.FromGroup.SendGroupMessage(p.MemberName(e, p.AttackMember) + MyString.str["正在攻击boss，请稍等！"]);
+                        }
+                        else
+                        {
+                            if (p.tree.ContainsKey(e.FromQQ.Id))
+                            {
+                                e.FromGroup.SendGroupMessage(p.MemberName(e) + MyString.str[" 已挂树，无法出刀"]);
+                            }
+                            else
+                            {
+                                p.Attack = true;
+                                p.AttackMember = e.FromQQ.Id;
+                                string temp = p.MemberName(e) + MyString.str["  已开始挑战boss"];
+                                e.FromGroup.SendGroupMessage(temp + "\n" +BossNow());
+                                p.SaveLog(temp);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (p.MaxAttackCount > p.AttackMembers.Count)
+                        {
+                            if (!p.AttackMembers.ContainsKey(e.FromQQ.Id))
+                            {
+                                if (p.tree.ContainsKey(e.FromQQ.Id))
+                                {
+                                    e.FromGroup.SendGroupMessage(p.MemberName(e) + MyString.str[" 已挂树，无法出刀"]);
+                                }
+                                else
+                                {
+                                    p.AttackMembers.Add(e.FromQQ.Id, p.week * 10 + p.targetBoss);
+                                    string temp = p.MemberName(e) + MyString.str["  已开始挑战boss"];
+                                    e.FromGroup.SendGroupMessage(temp + "\n" + p.AllAttackMember(e) + "正在挑战boss\n"+BossNow());
+                                    p.SaveLog(temp);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            e.FromGroup.SendGroupMessage(p.AllAttackMember(e) + MyString.str["正在挑战boss"] + "\n" + MyString.str["同时挑战人数达到设置上限！"]);
+                        }
+                    }
+                }
+                else
+                {
+                    e.FromGroup.SendGroupMessage("暂无boss数据，请录入！");
+                }
+            }
+
+            void FinishAttack()
+            {
+                if (p.MaxAttackCount == 1)
+                {
+                    if (e.FromQQ.Id == p.AttackMember)
+                    {
+                        int damage;
+                        if (msg.Length < 2)
+                        {
+                            e.FromGroup.SendGroupMessage("请在“完成”后空格后输入你的伤害或输入“击杀”");
+
+                        }
+                        else
+                        {
+                            if (msg[1].Equals("击杀"))
+                            {
+                                p.Attack = false;
+                                p.AttackMember = 0;
+                                int dmg = p.bossDate[p.targetBoss];
+                                p.BossBloodSub(dmg);
+                                string temp = p.MemberName(e) + " 已完成挑战boss";
+                                e.FromGroup.SendGroupMessage(temp + "\n"+BossNow());
+                                p.SaveLog(temp + " 击杀 ");
+                                p.Record(e, e.FromQQ.Id, dmg);
+                                p.SaveDate(e, p.SaveDatPer);
+                                p.tree.Clear();
+                            }
+                            else if (int.TryParse(msg[1], out damage))
+                            {
+                                if (damage > p.bossDate[p.targetBoss] || damage < 0)
+                                {
+                                    e.FromGroup.SendGroupMessage("请正确输入伤害，如果已击杀请输入“击杀”");
+                                }
+                                else
+                                {
+
+                                    p.Attack = false;
+                                    p.AttackMember = 0;
+                                    p.BossBloodSub(damage);
+                                    string temp = p.MemberName(e) + " 已完成挑战boss";
+                                    e.FromGroup.SendGroupMessage(temp + "\n"+BossNow());
+                                    p.SaveLog(temp + " " + damage);
+                                    p.Record(e, e.FromQQ.Id, damage);
+                                    p.SaveDate(e, p.SaveDatPer);
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if (p.AttackMembers.ContainsKey(e.FromQQ.Id))
+                    {
+                        int damage;
+                        if (msg.Length < 2)
+                        {
+                            e.FromGroup.SendGroupMessage(MyString.str["请在“完成”后空格后输入你的伤害或输入“击杀”"]);
+
+                        }
+                        else
+                        {
+                            if (msg[1].Equals(MyString.str["击杀"]))
+                            {
+                                if (p.AttackMembers[e.FromQQ.Id] == p.week * 10 + p.targetBoss)
+                                {
+                                    p.AttackMembers.Remove(e.FromQQ.Id);
+                                    int dmg = p.bossDate[p.targetBoss];
+                                    p.BossBloodSub(dmg);
+                                    string temp = p.MemberName(e) + MyString.str[" 已完成挑战boss"];
+                                    e.FromGroup.SendGroupMessage(temp + "\n"+BossNow());
+                                    p.SaveLog(temp + " 击杀 ");
+                                    p.Record(e, e.FromQQ.Id, dmg);
+                                    p.SaveDate(e, p.SaveDatPer);
+                                    p.tree.Clear();
+                                }
+                                else
+                                {
+                                    p.AttackMembers.Remove(e.FromQQ.Id);
+                                    e.FromGroup.SendGroupMessage(MyString.str["你已跨boss结算，当前数据不记录!"]);
+                                }
+                            }
+                            else if (int.TryParse(msg[1], out damage))
+                            {
+                                if (damage > p.bossDate[p.targetBoss] || damage < 0)
+                                {
+                                    e.FromGroup.SendGroupMessage(MyString.str["请正确输入伤害，如果已击杀请输入“击杀”"]);
+                                }
+                                else
+                                {
+                                    if (p.AttackMembers[e.FromQQ.Id] == p.week * 10 + p.targetBoss)
+                                    {
+                                        p.BossBloodSub(damage);
+                                        p.Attack = false;
+                                        p.AttackMembers.Remove(e.FromQQ.Id);
+                                        string temp = p.MemberName(e) + MyString.str[" 已完成挑战boss"];
+                                        e.FromGroup.SendGroupMessage(temp + "\n"+BossNow());
+                                        p.SaveLog(temp + " " + damage);
+
+                                        p.Record(e, e.FromQQ.Id, damage);
+                                        p.SaveDate(e, p.SaveDatPer);
+                                    }
+                                    else
+                                    {
+                                        p.AttackMembers.Remove(e.FromQQ.Id);
+                                        e.FromGroup.SendGroupMessage(MyString.str["你已跨boss结算，当前数据不记录!"]);
+                                    }
+                                }
+
+                            }
+                        }
+
+                    }
+                }
+            }
+
+            void UpTree()
+            {
+                if (p.MaxAttackCount == 1)
+                {
+                    if (e.FromQQ == p.AttackMember)
+                    {
+                        var member = e.FromQQ.Id;
+                        p.tree.Add(member, p.week * 10 + p.targetBoss);
+                        string temp = p.MemberName(e) + MyString.str[" 已挂树"];
+                        e.FromGroup.SendGroupMessage(temp);
+                        p.Attack = false;
+                        p.AttackMember = 0;
+                        p.SaveLog(temp);
+                    }
+                }
+                else
+                {
+                    if (p.AttackMembers.ContainsKey(e.FromQQ.Id))
+                    {
+                        if (p.AttackMembers[e.FromQQ.Id] == p.week * 10 + p.targetBoss)
+                        {
+                            var member = e.FromQQ.Id;
+                            p.tree.Add(member, p.week * 10 + p.targetBoss);
+                            string temp = p.MemberName(e) + MyString.str[" 已挂树"];
+                            e.FromGroup.SendGroupMessage(temp);
+                            p.AttackMembers.Remove(e.FromQQ.Id);
+                            p.SaveLog(temp);
+                        }
+                        else
+                        {
+                            p.AttackMembers.Remove(e.FromQQ.Id);
+                            e.FromGroup.SendGroupMessage(MyString.str["你已跨boss结算，当前数据不记录!"]);
+                        }
+                    }
+                }
+            }
+
+            void LookTree()
+            {
+                String sendtext = MyString.str["挂树成员："] + "\n";
+                foreach (var t in p.tree)
+                {
+                    sendtext += p.MemberName(e, t.Key) + "\n";
+                }
+                e.FromGroup.SendGroupMessage(sendtext);
+            }
+
+            void LookBoss()
+            {
+                if (p.bossDate != null)
+                {
+                    if (p.MaxAttackCount == 1)
+                    {
+                        e.FromGroup.SendGroupMessage((p.Attack ? p.MemberName(e, p.AttackMember) + "正在挑战boss\n" : "")+ BossNow());
+                    }
+                    else
+                        e.FromGroup.SendGroupMessage(p.AllAttackMember(e) + (p.AttackMembers.Count > 0 ? "正在挑战boss\n" : "")+ BossNow());
+                }
+                else
+                {
+                    e.FromGroup.SendGroupMessage("暂无boss数据，请录入！");
+                }
+            }
+
+            void DownTree()
+            {
+                if (p.tree.ContainsKey(e.FromQQ.Id))
+                {
+                    if (msg.Length >= 2)
+                    {
+                        int damage;
+                        if (msg.Length < 2)
+                        {
+                            e.FromGroup.SendGroupMessage(MyString.str["请在“强行下树”后空格后输入你的伤害或击杀"]);
+
+                        }
+                        else
+                        {
+                            if (msg[1].Equals(MyString.str["击杀"]))
+                            {
+                                p.Attack = false;
+                                p.AttackMembers[0] = 0;
+                                int dmg = p.bossDate[p.targetBoss];
+                                p.BossBloodSub(dmg);
+                                string temp = p.MemberName(e) + MyString.str["已强行下树"];
+                                e.FromGroup.SendGroupMessage(temp + "\n" + BossNow());
+                                p.tree.Remove(e.FromQQ.Id);
+                                p.tree.Clear();
+                                p.SaveLog(temp + " 击杀");
+
+                                p.Record(e, e.FromQQ.Id, dmg);
+                                p.SaveDate(e, p.SaveDatPer);
+                            }
+                            else if (int.TryParse(msg[1], out damage))
+                            {
+                                if (damage > p.bossDate[p.targetBoss] || damage < 0)
+                                {
+                                    e.FromGroup.SendGroupMessage(MyString.str["请正确输入伤害，如果已击杀请输入“击杀”"]);
+                                }
+                                else
+                                {
+                                    p.BossBloodSub(damage);
+                                    string temp = p.MemberName(e) + MyString.str["已强行下树"];
+                                    e.FromGroup.SendGroupMessage(temp + "\n" + BossNow());
+                                    p.tree.Remove(e.FromQQ.Id);
+                                    p.SaveLog(temp + " " + damage);
+
+                                    p.Record(e, e.FromQQ.Id, damage);
+                                    p.SaveDate(e, p.SaveDatPer);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            void ModifyBoss()
+            {
+                if (p.isRoot(e.FromQQ.Id))
+                {
+                    if (p.bossDate != null)
+                    {
+                        int temptar = 0;
+                        int tempweek = 1;
+                        int tempboss = 0;
+                        if (msg.Length >= 4)
+                        {
+                            if (int.TryParse(msg[1], out tempweek) && int.TryParse(msg[2], out temptar) && int.TryParse(msg[3], out tempboss))
+                            {
+                                p.week = tempweek;
+                                for (int i = 0; i < p.boss.Length - 1; i++)
+                                {
+                                    p.bossDate[i] =p.boss[i];
+                                }
+                                if (temptar > p.boss.Length || temptar < 0)
+                                {
+                                    e.FromGroup.SendGroupMessage("请正确输入当前第几个boss！");
+                                }
+                                else
+                                {
+                                    p.targetBoss = temptar - 1;
+                                }
+                                if (tempboss > p.boss[p.targetBoss] || tempboss <= 0)
+                                {
+                                    e.FromGroup.SendGroupMessage("请正确输入当前boss血量!");
+                                }
+                                else
+                                {
+                                    p.bossDate[p.targetBoss] = tempboss;
+                                }
+
+                                e.FromGroup.SendGroupMessage(BossNow());
+                                p.SaveLog(p.MemberName(e) + " 修正了boss数据");
+
+                            }
+                            else
+                            {
+                                e.FromGroup.SendGroupMessage("请正确输入！\n修正 [周目] [当前第几个boss] [当前boss血量]");
+                            }
+                        }
+                        else
+                        {
+                            e.FromGroup.SendGroupMessage("请正确输入！\n修正 [周目] [当前第几个boss] [当前boss血量]");
+                        }
+                    }
+                    else
+                    {
+                        e.FromGroup.SendGroupMessage("暂无boss数据，请录入！");
+                    }
+                }
+                else
+                {
+                    e.FromGroup.SendGroupMessage(MyString.str["你不是管理者账户，无法进行此操作！"]);
+                }
+            }
+
+            void AttackDate()
+            {
+                if (p.isRoot(e.FromQQ.Id))
+                {
+                    long qqid = GetAtQQ();
+                    string s = string.Empty;
+                    if (msg.Length >= 2 && msg[1].Equals(MyString.str["今天"]))
+                    {
+                        int attackMemberAll = 0;
+                        int attackTimesAll = 0;
+                        int temp = 0;
+                        foreach (var d in p.memberDate)
+                        {
+                            s += d.Value.LookDateRoot(p.Day());
+                            attackTimesAll += d.Value.DayAttack(p.Day());
+                            if (temp != attackTimesAll)
+                            {
+                                attackMemberAll++;
+                                temp = attackTimesAll;
+                            }
+                        }
+                        s += "今日出刀人数：" + attackMemberAll + "\n今日总刀数 " + attackTimesAll + "刀\n";
+                    }
+                    else if (qqid != 0)
+                    {
+                        if (p.memberDate.ContainsKey(qqid))
+                        {
+                            SendMsg(p.memberDate[qqid].LookDate(msg.Length >= 2));
+                        }
+                        else
+                        {
+                            SendMsg(MyString.str["暂无你的出刀数据!"]);
+                        }
+                    }
+                    else
+                    {
+                        foreach (var d in p.memberDate)
+                        {
+                            s += d.Value.LookDateRoot();
+                        }
+                    }
+                    e.FromGroup.SendGroupMessage(s);
+                }
+                else
+                {
+                    if (p.memberDate.ContainsKey(e.FromQQ.Id))
+                    {
+                        e.FromGroup.SendGroupMessage(p.memberDate[e.FromQQ.Id].LookDate(msg.Length >= 2));
+                    }
+                    else
+                    {
+                        e.FromGroup.SendGroupMessage(MyString.str["暂无你的出刀数据!"]);
+                    }
+                }
+            }
+
+            void DelDate()
+            {
+                if (p.isRoot(e.FromQQ.Id))
+                {
+                    e.FromGroup.SendGroupMessage("即将清除成员的出刀，确认？\n[是/否]");
+                    p.delDate = true;
+                }
+                else
+                {
+                    e.FromGroup.SendGroupMessage("你不是管理者!");
+
+                }
+            }
+
+            void DelAttackMember()
+            {
+                if (p.isRoot(e.FromQQ.Id))
+                {
+                    p.Attack = false;
+                    p.AttackMember = 0;
+                    p.AttackMembers.Clear();
+                    e.FromGroup.SendGroupMessage(MyString.str["解除出刀成功！"]);
+                }
+            }
+
+            void CutTree()
+            {
+                if (p.isRoot(e.FromQQ.Id))
+                {
+                    p.tree.Clear();
+                    e.FromGroup.SendGroupMessage(MyString.str["砍树成功！"]);
+                }
+            }
+
+            void HelpAttack1()
+            {
+                if (p.isRoot(e.FromQQ.Id))
+                {
+                    if (msg.Length < 3 || e.Message.CQCodes.Count <= 0)
+                    {
+                        e.FromGroup.SendGroupMessage(MyString.str["请正确输入代打数据 格式为："] + "\n" + MyString.str["代打 伤害(或击杀) at(@)代打账号拥有者"]);
+                    }
+                    else
+                    {
+                        var qq = e.Message.CQCodes.First();
+                        long qqid = 0;
+                        if (qq.Function == CQFunction.At)
+                        {
+                            if (qq.Items.ContainsKey("qq"))
+                            {
+                                long.TryParse(qq.Items["qq"], out qqid);
+                            }
+                        }
+                        if (qqid == 0)
+                        {
+                            e.FromGroup.SendGroupMessage(MyString.str["请正确输入代打数据 格式为："] + "\n" + MyString.str["代打 伤害(或击杀) at(@)代打账号拥有者"]);
+
+                        }
+                        else if (msg[1].Equals(MyString.str["击杀"]))
+                        {
+                            int dmg = p.bossDate[p.targetBoss];
+                            p.BossBloodSub(dmg);
+                            string temp = p.MemberName(e, qqid) + MyString.str[" 已完成挑战boss（代打）"];
+                            e.FromGroup.SendGroupMessage(temp + "\n" + BossNow() );
+                            p.SaveLog(temp + "  " + MyString.str["击杀"]);
+
+                            p.Record(e, qqid, dmg);
+                            p.SaveDate(e, p.SaveDatPer);
+                            p.tree.Clear();
+                        }
+                        else if (int.TryParse(msg[1], out int damage))
+                        {
+                            if (damage > p.bossDate[p.targetBoss] || damage < 0)
+                            {
+                                e.FromGroup.SendGroupMessage(MyString.str["请正确输入伤害，如果已击杀请输入“击杀”"]);
+                            }
+                            else
+                            {
+                                p.BossBloodSub(damage);
+                                string temp = p.MemberName(e, qqid) + MyString.str[" 已完成挑战boss（代打）"];
+                                e.FromGroup.SendGroupMessage(temp + "\n" + BossNow());
+                                p.SaveLog(temp + " " + damage);
+                                p.Record(e, qqid, damage);
+                                p.SaveDate(e, p.SaveDatPer);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    e.FromGroup.SendGroupMessage(MyString.str["只有管理者才能输入代打数据！"]);
+                }
+            }
+
+            void HelpAttack2()
+            {
+                if (p.isRoot(e.FromQQ.Id))
+                {
+                    if (msg.Length < 3 || e.Message.CQCodes.Count <= 0)
+                    {
+                        e.FromGroup.SendGroupMessage(MyString.str["请正确输入数据 格式为："] + "\n" + MyString.str["挑战 伤害 at(@)账号拥有者"]);
+                    }
+                    else
+                    {
+                        var qq = e.Message.CQCodes.First();
+                        long qqid = 0;
+                        if (qq.Function == CQFunction.At)
+                        {
+                            if (qq.Items.ContainsKey("qq"))
+                            {
+                                long.TryParse(qq.Items["qq"], out qqid);
+                            }
+                        }
+                        if (qqid == 0)
+                        {
+                            e.FromGroup.SendGroupMessage(MyString.str["请正确输入数据 格式为："] + "\n" + MyString.str["挑战 伤害 at(@)账号拥有者"]);
+
+                        }
+                        else if (int.TryParse(msg[1], out int damage))
+                        {
+                            if (damage > p.bossDate[p.targetBoss] || damage < 0)
+                            {
+                                e.FromGroup.SendGroupMessage(MyString.str["请正确输入伤害！"]);
+                            }
+                            else
+                            {
+                                p.BossBloodSub(damage);
+                                string temp = p.MemberName(e, qqid) + MyString.str[" 已完成挑战boss（手动输入）"];
+                                e.FromGroup.SendGroupMessage(temp + "\n" + BossNow() );
+                                p.SaveLog(temp + " " + damage);
+                                p.Record(e, qqid, damage);
+                                p.SaveDate(e, p.SaveDatPer);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    e.FromGroup.SendGroupMessage(MyString.str["只有管理者才能手动输入挑战数据！"]);
+                }
+            }
+
+            void Load()
+            {
+                if (p.isRoot(e.FromQQ.Id))
+                {
+                    p.LoadDate(e);
+                    SendMsg("读取成功！");
+                }
+            }
+
+            void Save()
+            {
+                if (p.isRoot(e.FromQQ.Id))
+                {
+                    if (p.memberDate.Count > 0)
+                    {
+                        p.SaveDate(e, true, true);
+                        p.SaveMemberDate();
+                    }
+
+                }
+            }
+
+            void Help()
+            {
+                e.FromGroup.SendGroupMessage("boss录入\n", "申请出刀\n", "完成\n", "挂树\n", "强行下树\n", "查树\n", "查看\n", "修正\n", "出刀数据\n");
+            }
+
+            string BossNow()
+            {
+                return "现在" + p.week + "周目，" + (p.targetBoss + 1) + "号boss生命值" + p.bossDate[p.targetBoss];
+            }
+
+            void JoinAll()
+            {
+                var glist = e.FromGroup.GetGroupMemberList();
+                int count = 0;
+                foreach(var qq in glist)
+                {
+                    long id = qq.QQ.Id;
+                    if (!p.memberDate.ContainsKey(id))
+                    {
+                        p.memberDate.Add(id, new MemberDate(id, p.MemberName(e, id)));
+                        p.memberDate[id].memberDateDay.Add(p.Day(), new MemberDateDay());
+                        count ++;
+                    }
+                }
+                if (p.memberDate.ContainsKey(e.CQApi.GetLoginQQId()))
+                {
+                    p.memberDate.Remove(e.CQApi.GetLoginQQId());
+                    count--;
+                }
+                SendMsg(MyString.str["成功加入"] + count + MyString.str["名成员"]);
+                p.SaveLog("管理者将全员加入公会");
+                p.SaveDate(e);
+
+            }
+
+            void JoinA()
+            {
+                long qq = e.FromQQ.Id;
+                if (msg.Length > 1)
+                {
+                    if (p.isRoot(qq))
+                    {
+                        long qqid = GetAtQQ();
+                        if (qqid != 0)
+                        {
+                            if (p.memberDate.ContainsKey(qqid))
+                            {
+                                SendMsg(MyString.str["该成员已经在公会了"]);
+                            }
+                            else if (qqid == e.CQApi.GetLoginQQId())
+                            {
+                                SendMsg("不能将机器人加入公会!");
+                            }
+                            else
+                            {
+                                p.memberDate.Add(qqid, new MemberDate(qqid, p.MemberName(e, qqid)));
+                                p.memberDate[qqid].memberDateDay.Add(p.Day(), new MemberDateDay());
+                                SendMsg(MyString.str["成功加入公会！"]);
+                                p.SaveLog("管理者将" + p.memberDate[qqid].name + " " + qqid + " 加入公会");
+                                p.SaveDate(e);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if (p.memberDate.ContainsKey(qq))
+                    {
+                        SendMsg(MyString.str["你已经在公会了"]);
+                    }
+                    else
+                    {
+                        p.memberDate.Add(qq, new MemberDate(qq, p.MemberName(e, qq)));
+                        p.memberDate[qq].memberDateDay.Add(p.Day(), new MemberDateDay());
+                        SendMsg(MyString.str["成功加入公会！"]);
+                        p.SaveLog(p.memberDate[qq].name + " " + qq + " 入会");
+                        p.SaveDate(e);
+                    }
+                }
+            }
+
+            void DelMember()
+            {
+                long qq = e.FromQQ.Id;
+                if (msg.Length > 1)
+                {
+                    if (p.isRoot(qq))
+                    {
+                        long qqid = GetAtQQ();
+                        if (qqid != 0)
+                        {
+                            if (p.memberDate.ContainsKey(qqid))
+                            {
+                                p.SaveLog("管理者将" + p.memberDate[qqid].name + " " + qqid + " 踢出");
+                                p.memberDate.Remove(qqid);
+                                SendMsg(MyString.str["该成员踢出了公会了"]);
+                                p.SaveDate(e);
+                            }
+                            else
+                            {
+                                SendMsg(MyString.str["该成员还不在公会！"]);
+                            }
+                        } 
+                    }
+                }
+                else
+                {
+                    if (p.memberDate.ContainsKey(qq))
+                    {
+                        p.SaveLog(p.memberDate[qq].name + " " + qq + " 退出了公会");
+                        p.memberDate.Remove(qq);
+                        SendMsg(MyString.str["你退出了公会了"]);
+                        p.SaveDate(e);
+                    }
+                    else
+                    {
+                        SendMsg(MyString.str["你还不在公会！"]);
+                    }
+                }
+            }
+
+            void Remind()
+            {
+                if (p.isRoot(e.FromQQ.Id))
+                {
+                    string s = MyString.str["管理催刀了！"] + "\n";
+                    foreach(var qq in p.memberDate)
+                    {
+                        if (qq.Value.memberDateDay.ContainsKey(p.Day()))
+                        {
+                            if (qq.Value.memberDateDay[p.Day()].attackTimes < 3)
+                            {
+                                s+=CQApi.CQCode_At(qq.Key);
+                            }
+                        }
+                        else
+                        {
+                            s += CQApi.CQCode_At(qq.Key);
+                        }
+                    }
+                    s += "\n" + "请以上成员立即出刀!";
+                    SendMsg(s);
+                }
+            }
+
+            long GetAtQQ()
+            {
+                if (e.Message.CQCodes.Count > 0)
+                {
+                    var qq = e.Message.CQCodes.First();
+                    if (qq != null && qq.Function == CQFunction.At)
+                    {
+                        if (qq.Items.ContainsKey("qq"))
+                        {
+                            if (long.TryParse(qq.Items["qq"], out long qqid))
+                                return qqid;
+                        }
+                    }
+                }
+                return 0L;
+            }
+        }
+
     }
 
     [Serializable]
@@ -1357,3 +1614,649 @@ namespace com.pcrbot._1.Code
         }
     }
 }
+
+/*if (msgA[0].Equals(MyString.str["boss录入"]))
+            {
+                if (isRoot(e.FromQQ.Id))
+                {
+                    if (msgA.Length > 1)
+                    {
+                        e.CQLog.Debug("" + msgA.Length);
+                        bool tempb = true;
+                        targetBoss = 0;
+                        AttackMembers = new Dictionary<long, int>();
+                        Attack = false;
+                        week = 1;
+                        AttackMember = 0;
+                        bossDate = new int[msgA.Length - 1];
+                        boss = new int[msgA.Length - 1];
+                        for (int i = 1; i < msgA.Length; i++)
+                        {
+                            int temp;
+                            if (int.TryParse(msgA[i], out temp))
+                            {
+                                boss[i - 1] = temp * 10000;
+                                bossDate[i - 1] = temp * 10000;
+                            }
+                            else
+                            {
+                                tempb = false;
+                                e.FromGroup.SendGroupMessage("正确录入" + i + "个\n请正确输入，后续应为整数，且单位为万\n例如\n——\nboss录入 200\n——\n表示录入1个200w血boss");
+                                break;
+                            }
+                        }
+                        if (tempb)
+                        {
+                            string temp = "成功录入" + boss.Length + "个数据";
+                            e.FromGroup.SendGroupMessage(temp);
+                            SaveLog(MemberName(e) + "  " + temp);
+                        }
+                    }
+                    else
+                    {
+                        e.FromGroup.SendGroupMessage("请正确输入，后续应为整数，且单位为万\n例如\n——\nboss录入 200\n——\n表示录入1个200w血boss");
+                    }
+                }
+                else
+                {
+                    e.FromGroup.SendGroupMessage(MyString.str["你不是管理者账户，无法进行此操作！"]);
+                }
+            }
+            else if (msgA[0].Equals(MyString.str["申请出刀"]))
+            {
+                if (bossDate != null)
+                {
+                    if (MaxAttackCount == 1)
+                    {
+                        if (Attack)
+                        {
+                            e.FromGroup.SendGroupMessage(MemberName(e, AttackMember) + MyString.str["正在攻击boss，请稍等！"]);
+                        }
+                        else
+                        {
+                            if (tree.ContainsKey(e.FromQQ.Id))
+                            {
+                                e.FromGroup.SendGroupMessage(MemberName(e) + MyString.str[" 已挂树，无法出刀"]);
+                            }
+                            else
+                            {
+                                Attack = true;
+                                AttackMember = e.FromQQ.Id;
+                                string temp = MemberName(e) + MyString.str["  已开始挑战boss"];
+                                e.FromGroup.SendGroupMessage(temp + "\n现在" + week + "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
+                                SaveLog(temp);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if (MaxAttackCount > AttackMembers.Count)
+                        {
+                            if (!AttackMembers.ContainsKey(e.FromQQ.Id))
+                            {
+                                if (tree.ContainsKey(e.FromQQ.Id))
+                                {
+                                    e.FromGroup.SendGroupMessage(MemberName(e) + MyString.str[" 已挂树，无法出刀"]);
+                                }
+                                else
+                                {
+                                    AttackMembers.Add(e.FromQQ.Id, week * 10 + targetBoss);
+                                    string temp = MemberName(e) + MyString.str["  已开始挑战boss"];
+                                    e.FromGroup.SendGroupMessage(temp+"\n" + AllAttackMember(e) + "正在挑战boss\n现在" + week + "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
+                                    SaveLog(temp);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            e.FromGroup.SendGroupMessage(AllAttackMember(e) + MyString.str["正在挑战boss"]+"\n" +MyString.str["同时挑战人数达到设置上限！"]);
+                        }
+                    }
+                }
+                else
+                {
+                    e.FromGroup.SendGroupMessage("暂无boss数据，请录入！");
+                }
+            }
+            else if (msgA[0].Equals(MyString.str["完成"]))
+            {
+                if (MaxAttackCount == 1)
+                {
+                    if (e.FromQQ.Id == AttackMember)
+                    {
+                        int damage;
+                        if (msgA.Length < 2)
+                        {
+                            e.FromGroup.SendGroupMessage("请在“完成”后空格后输入你的伤害或输入“击杀”");
+
+                        }
+                        else
+                        {
+                            if (msgA[1].Equals("击杀"))
+                            {
+                                Attack = false;
+                                AttackMember = 0;
+                                int dmg = bossDate[targetBoss];
+                                bossDate[targetBoss] = 0;
+                                targetBoss++;
+                                if (targetBoss == boss.Length)
+                                {
+                                    week++;
+                                    for (int i = 0; i < boss.Length - 1; i++)
+                                    {
+                                        bossDate[i] = boss[i];
+                                    }
+                                }
+                                targetBoss %= boss.Length;
+                                string temp = MemberName(e) + " 已完成挑战boss";
+                                e.FromGroup.SendGroupMessage(temp + "\n现在" + week +
+                                        "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
+                                SaveLog(temp + " 击杀 ");
+                                
+                                Record(e, e.FromQQ.Id, dmg);
+                                SaveDate(e, SaveDatPer);
+                                tree.Clear();
+                            }
+                            else if (int.TryParse(msgA[1], out damage))
+                            {
+                                if (damage > bossDate[targetBoss] || damage < 0)
+                                {
+                                    e.FromGroup.SendGroupMessage("请正确输入伤害，如果已击杀请输入“击杀”");
+                                }
+                                else
+                                {
+                                    bossDate[targetBoss] -= damage;
+                                    CheackBossBlood();
+                                    Attack = false;
+                                    AttackMember = 0;
+                                    CheackBossBlood();
+                                    string temp = MemberName(e) + " 已完成挑战boss";
+                                    e.FromGroup.SendGroupMessage(temp + "\n现在" + week +
+                                        "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
+                                    SaveLog(temp + " " + damage);
+                                    
+                                    Record(e, e.FromQQ.Id, damage);
+                                    SaveDate(e, SaveDatPer);
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if (AttackMembers.ContainsKey(e.FromQQ.Id))
+                    {
+                        int damage;
+                        if (msgA.Length < 2)
+                        {
+                            e.FromGroup.SendGroupMessage(MyString.str["请在“完成”后空格后输入你的伤害或输入“击杀”"]);
+
+                        }
+                        else
+                        {
+                            if (msgA[1].Equals(MyString.str["击杀"]))
+                            {
+                                if (AttackMembers[e.FromQQ.Id] == week * 10 + targetBoss)
+                                {
+                                    AttackMembers.Remove(e.FromQQ.Id);
+                                    int dmg = bossDate[targetBoss];
+                                    bossDate[targetBoss] = 0;
+                                    targetBoss++;
+                                    if (targetBoss == boss.Length)
+                                    {
+                                        week++;
+                                        for (int i = 0; i < boss.Length; i++)
+                                        {
+                                            bossDate[i] = boss[i];
+                                        }
+                                    }
+                                    targetBoss %= boss.Length;
+                                    string temp = MemberName(e) + MyString.str[" 已完成挑战boss"];
+                                    e.FromGroup.SendGroupMessage(temp + "\n现在" + week +
+                                            "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
+                                    SaveLog(temp + " 击杀 ");
+                                    
+                                    Record(e, e.FromQQ.Id, dmg);
+                                    SaveDate(e, SaveDatPer);
+                                    tree.Clear();
+                                }
+                                else
+                                {
+                                    AttackMembers.Remove(e.FromQQ.Id);
+                                    e.FromGroup.SendGroupMessage(MyString.str["你已跨boss结算，当前数据不记录!"]);
+                                }
+                            }
+                            else if (int.TryParse(msgA[1], out damage))
+                            {
+                                if (damage > bossDate[targetBoss] || damage < 0)
+                                {
+                                    e.FromGroup.SendGroupMessage(MyString.str["请正确输入伤害，如果已击杀请输入“击杀”"]);
+                                }
+                                else
+                                {
+                                    if (AttackMembers[e.FromQQ.Id] == week * 10 + targetBoss)
+                                    {
+
+
+                                        bossDate[targetBoss] -= damage;
+                                        CheackBossBlood();
+                                        Attack = false;
+                                        AttackMembers.Remove(e.FromQQ.Id);
+                                        string temp = MemberName(e) + MyString.str[" 已完成挑战boss"];
+                                        e.FromGroup.SendGroupMessage(temp + "\n现在" + week +
+                                            "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
+                                        SaveLog(temp + " " + damage);
+                                        
+                                        Record(e, e.FromQQ.Id, damage);
+                                        SaveDate(e, SaveDatPer);
+                                    }
+                                    else
+                                    {
+                                        AttackMembers.Remove(e.FromQQ.Id);
+                                        e.FromGroup.SendGroupMessage(MyString.str["你已跨boss结算，当前数据不记录!"]);
+                                    }
+                                }
+
+                            }
+                        }
+
+                    }
+                }
+            }
+            else if (msgA[0].Equals(MyString.str["挂树"]))
+            {
+                if (MaxAttackCount == 1)
+                {
+                    if (e.FromQQ == AttackMember)
+                    {
+                        var member = e.FromQQ.Id;
+                        tree.Add(member, week * 10 + targetBoss);
+                        string temp = MemberName(e) + MyString.str[" 已挂树"];
+                        e.FromGroup.SendGroupMessage(temp);
+                        Attack = false;
+                        AttackMember = 0;
+                        SaveLog(temp);
+                    }
+                }
+                else
+                {
+                    if (AttackMembers.ContainsKey(e.FromQQ.Id))
+                    {
+                        if (AttackMembers[e.FromQQ.Id] == week * 10 + targetBoss)
+                        {
+                            var member = e.FromQQ.Id;
+                            tree.Add(member, week * 10 + targetBoss);
+                            string temp = MemberName(e) + MyString.str[" 已挂树"];
+                            e.FromGroup.SendGroupMessage(temp);
+                            AttackMembers.Remove(e.FromQQ.Id);
+                            SaveLog(temp);
+                        }
+                        else
+                        {
+                            AttackMembers.Remove(e.FromQQ.Id);
+                            e.FromGroup.SendGroupMessage(MyString.str["你已跨boss结算，当前数据不记录!"]);
+                        }
+                    }
+                }
+            }
+            else if (msgA[0].Equals(MyString.str["查树"]))
+            {
+                String sendtext = MyString.str["挂树成员："]+"\n";
+                foreach (var t in tree)
+                {
+                    sendtext += MemberName(e, t.Key) + "\n";
+                }
+                e.FromGroup.SendGroupMessage(sendtext);
+            }
+            else if (msgA[0].Equals(MyString.str["查看"]))
+            {
+                if (bossDate != null)
+                {
+                    if (MaxAttackCount == 1)
+                    {
+                        e.FromGroup.SendGroupMessage((Attack ? MemberName(e, AttackMember) + "正在挑战boss\n" : "")
+                            + "当前" + week + "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
+                    }
+                    else
+                        e.FromGroup.SendGroupMessage(AllAttackMember(e) + (AttackMembers.Count > 0 ? "正在挑战boss\n" : "")
+                            + "当前" + week + "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
+                }
+                else
+                {
+                    e.FromGroup.SendGroupMessage("暂无boss数据，请录入！");
+                }
+            }
+            else if (msgA[0].Equals(MyString.str["强行下树"]))
+            {
+                if (tree.ContainsKey(e.FromQQ.Id))
+                {
+                    if (msgA.Length >= 2)
+                    {
+                        int damage;
+                        if (msgA.Length < 2)
+                        {
+                            e.FromGroup.SendGroupMessage(MyString.str["请在“强行下树”后空格后输入你的伤害或击杀"]);
+
+                        }
+                        else
+                        {
+                            if (msgA[1].Equals(MyString.str["击杀"]))
+                            {
+                                Attack = false;
+                                AttackMembers[0] = 0;
+                                int dmg = bossDate[targetBoss];
+                                bossDate[targetBoss] = 0;
+                                targetBoss++;
+                                if (targetBoss == boss.Length)
+                                {
+                                    week++;
+                                    for (int i = 0; i < boss.Length; i++)
+                                    {
+                                        bossDate[i] = boss[i];
+                                    }
+                                }
+                                targetBoss %= boss.Length;
+                                string temp = MemberName(e) + MyString.str["已强行下树"];
+                                e.FromGroup.SendGroupMessage(temp + "\n现在" + week +
+                                        "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
+                                tree.Remove(e.FromQQ.Id);
+                                tree.Clear();
+                                SaveLog(temp + " 击杀");
+                                
+                                Record(e, e.FromQQ.Id, dmg);
+                                SaveDate(e, SaveDatPer);
+                            }
+                            else if (int.TryParse(msgA[1], out damage))
+                            {
+                                if (damage > bossDate[targetBoss] || damage < 0)
+                                {
+                                    e.FromGroup.SendGroupMessage(MyString.str["请正确输入伤害，如果已击杀请输入“击杀”"]);
+                                }
+                                else
+                                {
+                                    bossDate[targetBoss] -= damage;
+                                    CheackBossBlood();
+                                    string temp = MemberName(e) + MyString.str["已强行下树"];
+                                    e.FromGroup.SendGroupMessage(temp + "\n现在" + week +
+                                        "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
+                                    tree.Remove(e.FromQQ.Id);
+                                    SaveLog(temp + " " + damage);
+                                   
+                                    Record(e, e.FromQQ.Id, damage);
+                                    SaveDate(e, SaveDatPer);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else if (msgA[0].Equals(MyString.str["修正"]))
+            {
+                if (isRoot(e.FromQQ.Id))
+                {
+                    if (bossDate != null)
+                    {
+                        int temptar = 0;
+                        int tempweek = 1;
+                        int tempboss = 0;
+                        if (msgA.Length >= 4)
+                        {
+                            if (int.TryParse(msgA[1], out tempweek) && int.TryParse(msgA[2], out temptar) && int.TryParse(msgA[3], out tempboss))
+                            {
+                                week = tempweek;
+                                for (int i = 0; i < boss.Length - 1; i++)
+                                {
+                                    bossDate[i] = boss[i];
+                                }
+                                if (temptar > boss.Length || temptar < 0)
+                                {
+                                    e.FromGroup.SendGroupMessage("请正确输入当前第几个boss！");
+                                }
+                                else
+                                {
+                                    targetBoss = temptar - 1;
+                                }
+                                if (tempboss > boss[targetBoss] || tempboss <= 0)
+                                {
+                                    e.FromGroup.SendGroupMessage("请正确输入当前boss血量!");
+                                }
+                                else
+                                {
+                                    bossDate[targetBoss] = tempboss;
+                                }
+
+                                e.FromGroup.SendGroupMessage("当前" + week + "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
+                                SaveLog(MemberName(e) + " 修正了boss数据");
+
+                            }
+                            else
+                            {
+                                e.FromGroup.SendGroupMessage("请正确输入！\n修正 [周目] [当前第几个boss] [当前boss血量]");
+                            }
+                        }
+                        else
+                        {
+                            e.FromGroup.SendGroupMessage("请正确输入！\n修正 [周目] [当前第几个boss] [当前boss血量]");
+                        }
+                    }
+                    else
+                    {
+                        e.FromGroup.SendGroupMessage("暂无boss数据，请录入！");
+                    }
+                }
+                else
+                {
+                    e.FromGroup.SendGroupMessage(MyString.str["你不是管理者账户，无法进行此操作！"]);
+                }
+            }
+            else if (msgA[0].Equals(MyString.str["出刀数据"]))
+            {
+                if (isRoot(e.FromQQ.Id))
+                {
+                    string s = string.Empty;
+                    if (msgA.Length >= 2 && msgA[1].Equals(MyString.str["今天"]))
+                    {
+                        int attackTimesAll = 0;
+                        foreach (var d in memberDate)
+                        {
+                            s += d.Value.LookDateRoot(Day());
+                            attackTimesAll += d.Value.DayAttack(Day());
+                        }
+                        s += "今日总刀数 " + attackTimesAll + "刀\n";
+                    }
+                    else
+                    {
+                        foreach (var d in memberDate)
+                        {
+                            s += d.Value.LookDateRoot();
+                        }
+                    }
+                    e.FromGroup.SendGroupMessage(s);
+                }
+                else
+                {
+                    if (memberDate.ContainsKey(e.FromQQ.Id))
+                    {
+                        e.FromGroup.SendGroupMessage(memberDate[e.FromQQ.Id].LookDate(msgA.Length >= 2));
+                    }
+                    else
+                    {
+                        e.FromGroup.SendGroupMessage(MyString.str["暂无你的出刀数据!"]);
+                    }
+                }
+            }
+            else if (msgA[0].Equals(MyString.str["清除数据"]))
+            {
+                if (isRoot(e.FromQQ.Id))
+                {
+                    e.FromGroup.SendGroupMessage("即将清除成员的出刀，确认？\n[是/否]");
+                    delDate = true;
+                }
+                else
+                {
+                    e.FromGroup.SendGroupMessage("你不是管理者!");
+
+                }
+            }
+            else if (msgA[0].Equals(MyString.str["解除出刀"]))
+            {
+                if (isRoot(e.FromQQ.Id))
+                {
+                    Attack = false;
+                    AttackMember = 0;
+                    AttackMembers.Clear();
+                    e.FromGroup.SendGroupMessage(MyString.str["解除出刀成功！"]);
+                }
+            }
+            else if (msgA[0].Equals(MyString.str["砍树"]))
+            {
+                if (isRoot(e.FromQQ.Id))
+                {
+                    tree.Clear();
+                    e.FromGroup.SendGroupMessage(MyString.str["砍树成功！"]);
+                }
+            }
+            else if (msgA[0].Equals(MyString.str["代打"]))
+            {
+                if (isRoot(e.FromQQ.Id))
+                {
+                    if (msgA.Length < 3||e.Message.CQCodes.Count<=0)
+                    {
+                        e.FromGroup.SendGroupMessage(MyString.str["请正确输入代打数据 格式为："]+"\n"+ MyString.str["代打 伤害(或击杀) at(@)代打账号拥有者"]);
+                    }
+                    else
+                    {
+                        var qq = e.Message.CQCodes.First();
+                        long qqid = 0;
+                        if (qq.Function == CQFunction.At)
+                        {
+                            if (qq.Items.ContainsKey("qq"))
+                            {
+                                long.TryParse(qq.Items["qq"],out qqid);
+                            }
+                        }
+                        if (qqid == 0)
+                        {
+                            e.FromGroup.SendGroupMessage(MyString.str["请正确输入代打数据 格式为："] + "\n" + MyString.str["代打 伤害(或击杀) at(@)代打账号拥有者"]);
+                            
+                        }
+                        else if (msgA[1].Equals(MyString.str["击杀"]))
+                        {
+                            int dmg = bossDate[targetBoss];
+                            bossDate[targetBoss] = 0;
+                            targetBoss++;
+                            if (targetBoss == boss.Length)
+                            {
+                                week++;
+                                for (int i = 0; i < boss.Length; i++)
+                                {
+                                    bossDate[i] = boss[i];
+                                }
+                            }
+                            targetBoss %= boss.Length;
+                            string temp = MemberName(e,qqid) + MyString.str[" 已完成挑战boss（代打）"];
+                            e.FromGroup.SendGroupMessage(temp + "\n现在" + week +
+                                    "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
+                            SaveLog(temp +"  " +MyString.str["击杀"]);
+
+                            Record(e, qqid, dmg);
+                            SaveDate(e, SaveDatPer);
+                            tree.Clear();
+                        }
+                        else if (int.TryParse(msgA[1], out int damage))
+                        {
+                            if (damage > bossDate[targetBoss] || damage < 0)
+                            {
+                                e.FromGroup.SendGroupMessage(MyString.str["请正确输入伤害，如果已击杀请输入“击杀”"]);
+                            }
+                            else
+                            {
+                                bossDate[targetBoss] -= damage;
+                                CheackBossBlood();
+                                string temp = MemberName(e,qqid) + MyString.str[" 已完成挑战boss（代打）"];
+                                e.FromGroup.SendGroupMessage(temp + "\n现在" + week +
+                                    "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
+                                SaveLog(temp + " " + damage);
+                                Record(e, qqid, damage);
+                                SaveDate(e, SaveDatPer);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    e.FromGroup.SendGroupMessage(MyString.str["只有管理者才能输入代打数据！"]);
+                }
+            }
+            else if (msgA[0].Equals(MyString.str["挑战"]))
+            {
+                if (isRoot(e.FromQQ.Id))
+                {
+                    if (msgA.Length < 3 || e.Message.CQCodes.Count <= 0)
+                    {
+                        e.FromGroup.SendGroupMessage(MyString.str["请正确输入数据 格式为："] + "\n" + MyString.str["挑战 伤害 at(@)账号拥有者"]);
+                    }
+                    else
+                    {
+                        var qq = e.Message.CQCodes.First();
+                        long qqid = 0;
+                        if (qq.Function == CQFunction.At)
+                        {
+                            if (qq.Items.ContainsKey("qq"))
+                            {
+                                long.TryParse(qq.Items["qq"], out qqid);
+                            }
+                        }
+                        if (qqid == 0)
+                        {
+                            e.FromGroup.SendGroupMessage(MyString.str["请正确输入数据 格式为："] + "\n" + MyString.str["挑战 伤害 at(@)账号拥有者"]);
+
+                        }
+                        else if (int.TryParse(msgA[1], out int damage))
+                        {
+                            if (damage > bossDate[targetBoss] || damage < 0)
+                            {
+                                e.FromGroup.SendGroupMessage(MyString.str["请正确输入伤害！"]);
+                            }
+                            else
+                            {
+                                bossDate[targetBoss] -= damage;
+                                CheackBossBlood();
+                                string temp = MemberName(e, qqid) + MyString.str[" 已完成挑战boss（手动输入）"];
+                                e.FromGroup.SendGroupMessage(temp + "\n现在" + week +
+                                    "周目，" + (targetBoss + 1) + "号boss生命值" + bossDate[targetBoss]);
+                                SaveLog(temp + " " + damage);
+                                Record(e, qqid, damage);
+                                SaveDate(e, SaveDatPer);
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    e.FromGroup.SendGroupMessage(MyString.str["只有管理者才能手动输入挑战数据！"]);
+                }
+            }
+            else if (msgA[0].Equals(MyString.str["读取"]))
+            {
+                if (isRoot(e.FromQQ.Id))
+                {
+                    LoadDate(e);
+                }
+            }
+            else if (msgA[0].Equals(MyString.str["保存"]))
+            {
+                if (isRoot(e.FromQQ.Id))
+                {
+                    if (memberDate.Count > 0)
+                    {
+                        SaveDate(e, true,true);
+                        SaveMemberDate();
+                    }
+                }
+            }
+            else if (msgA[0].Equals(MyString.str["指令详情"]))
+            {
+                e.FromGroup.SendGroupMessage("boss录入\n", "申请出刀\n", "完成\n", "挂树\n", "强行下树\n", "查树\n", "查看\n", "修正\n", "出刀数据\n");
+
+            }*/

@@ -62,7 +62,10 @@ namespace com.pcrbot._1.UI
                             {
                                 if (dayDmg != null && pcrbot[GroupId].GetMemberDateDic()[QQId].memberDateDay[Day].damage.Count > dayDmg.i)
                                 {
+
+                                    DayDmg tempDayDmg = new DayDmg(dayDmg.i,dayDmg.dmg);
                                     DmgList.Items.Remove(dayDmg);
+                                    dayDmg = tempDayDmg;
                                     pcrbot[GroupId].GetMemberDateDic()[QQId].memberDateDay[Day].damage[dayDmg.i] = dmg;
                                     dayDmg.dmg = dmg;
                                     DmgList.Items.Add(dayDmg);
