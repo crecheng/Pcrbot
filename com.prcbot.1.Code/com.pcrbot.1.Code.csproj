@@ -45,10 +45,13 @@
   <ItemGroup>
     <Compile Include="App_AppEnabled.cs" />
     <Compile Include="Common.cs" />
+    <Compile Include="EggPool.cs" />
     <Compile Include="Event_GroupMsg.cs" />
+    <Compile Include="MyRandom.cs" />
     <Compile Include="MyString.cs" />
     <Compile Include="Pcrbot.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Pool.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Native.Sdk\Native.Sdk.csproj">

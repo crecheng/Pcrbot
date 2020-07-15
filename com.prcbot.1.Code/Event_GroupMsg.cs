@@ -40,8 +40,15 @@ namespace com.pcrbot._1.Code
                 }
                 if (tempP != null)
                 {
-                    pcrbot.Add(groupid, tempP);
-                    pcrbot[groupid].PrcbotMsg(sender, e);
+                    try
+                    {
+                        pcrbot.Add(groupid, tempP);
+                        pcrbot[groupid].PrcbotMsg(sender, e);
+                    }
+                    catch (Exception ex)
+                    {
+                        e.CQLog.Warning("添加Pcrbot对象到字典失败" + ex.Message);
+                    }
                 }
             }
 

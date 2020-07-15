@@ -28,16 +28,26 @@ namespace com.pcrbot._1.UI
             InitializeComponent();
             if (File.Exists(setPathData))
                 Loading();
+            poolSet.Visibility = Visibility.Hidden;
         }
         string[] str;
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            str = new string[5];
+            str = new string[14];
             str[0] = rootMemberId.Text;
             str[1] = GroupId.Text;
             str[2] = pcrbotKey.Text;
             str[3] = maxMember.Text;
             str[4] = (SaveDatPre.IsChecked==true) ? "1" : "0";
+            str[5] = reMsgMaxLine.Text;
+            str[6] = MaxLotteryTimes.Text;
+            str[7] = star1c.Text;
+            str[8] = star1.Text;
+            str[9] = star2c.Text;
+            str[10] = star2.Text;
+            str[11] = star3c.Text;
+            str[12] = star3.Text;
+            str[13] = ImgRandom.Text;
             var rootMemberList = rootMemberId.Text.Split(',');
             var GroupIdList = GroupId.Text.Split(',');
             Dictionary<long, Pcrbot> pcrbot = null;
@@ -57,11 +67,18 @@ namespace com.pcrbot._1.UI
                 p.Value.key = str[2];
                 p.Value.rootMember.Clear();
                 int.TryParse(str[3], out int max);
+                int.TryParse(str[5], out p.Value.reMsgMaxLine);
+                int.TryParse(str[6], out p.Value.lotteryTimes);
                 if (max >= 1)
                     p.Value.MaxAttackCount = max;
                 else
                     maxMember.Text = "1";
                 p.Value.SaveDatPer = str[4].Equals("1");
+                int.TryParse(str[7], out int s1c);
+                int.TryParse(str[9], out int s2c);
+                int.TryParse(str[11], out int s3c);
+                p.Value.ChangePool(s1c,str[8],s2c,str[10],s3c,str[12]);
+                p.Value.RandomImgStr = str[13];
                 foreach (var id in rootMemberList)
                 {
                     if (long.TryParse(id, out long temp))
@@ -80,6 +97,7 @@ namespace com.pcrbot._1.UI
                 }
             }
             Save();
+            Close();
         }
 
         private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
@@ -124,6 +142,42 @@ namespace com.pcrbot._1.UI
                 if (str.Length >= 5)
                 {
                     SaveDatPre.IsChecked = str[4].Equals("1");
+                }
+                if (str.Length >= 6)
+                {
+                    reMsgMaxLine.Text = str[5];
+                }
+                if(str.Length >= 7)
+                {
+                    MaxLotteryTimes.Text = str[6];
+                }
+                if (str.Length >= 8)
+                {
+                    star1c.Text = str[7];
+                }
+                if (str.Length >= 9)
+                {
+                    star1.Text = str[8];
+                }
+                if (str.Length >= 10)
+                {
+                    star2c.Text = str[9];
+                }
+                if (str.Length >= 11)
+                {
+                    star2.Text = str[10];
+                }
+                if (str.Length >= 12)
+                {
+                    star3c.Text = str[11];
+                }
+                if (str.Length >= 13)
+                {
+                    star3.Text = str[12];
+                }
+                if(str.Length>=14)
+                {
+                    ImgRandom.Text = str[13];
                 }
             }
             if (File.Exists(strPathData))
@@ -198,6 +252,38 @@ namespace com.pcrbot._1.UI
             strList.Items.Clear();
             modifyText.Text = String.Empty;
             SetMyStr(GetMyStr());
+        }
+
+        private void Button_Click_3(object sender, RoutedEventArgs e)
+        {
+            poolSet.Visibility = Visibility.Hidden;
+            MySet.Visibility = Visibility.Visible;
+        }
+
+        private void Button_Click_4(object sender, RoutedEventArgs e)
+        {
+            MySet.Visibility = Visibility.Hidden;
+            poolSet.Visibility = Visibility.Visible;
+        }
+
+        private void Button_Click_5(object sender, RoutedEventArgs e)
+        {
+            string path = Directory.GetCurrentDirectory() + @"\data\app\com.prcbot\pic";
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+            System.Diagnostics.Process.Start("explorer.exe", path);
+        }
+
+        private void Button_Click_6(object sender, RoutedEventArgs e)
+        {
+        }
+
+        private void Button_Click_7(object sender, RoutedEventArgs e)
+        {
+            string path = Directory.GetCurrentDirectory() + @"\data\image\pcrbotRandomPng";
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+            System.Diagnostics.Process.Start("explorer.exe", path);
         }
     }
     public class ModfiyMyS

@@ -5,24 +5,56 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:com.pcrbot._1.UI"
         mc:Ignorable="d"
-        Title="Pcrbot设置" Height="400" Width="400">
-    <Grid>
-        <Button Content="保存" HorizontalAlignment="Left" Margin="309,341,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
-        <TextBox HorizontalAlignment="Left" Height="68" Margin="10,31,0,0" TextWrapping="Wrap" Text="请输入QQ号多个qq号请用逗号（英文）隔开" VerticalAlignment="Top" Width="80" TextChanged="TextBox_TextChanged" Name="rootMemberId"/>
-        <TextBlock HorizontalAlignment="Left" Margin="10,16,0,0" TextWrapping="Wrap" Text="管理员" VerticalAlignment="Top"/>
-        <TextBox HorizontalAlignment="Left" Height="68" Margin="118,31,0,0" TextWrapping="Wrap" Text="在哪些群使用，多个用逗号隔开" VerticalAlignment="Top" Width="82" Name="GroupId"/>
-        <TextBlock HorizontalAlignment="Left" Margin="118,16,0,0" TextWrapping="Wrap" Text="使用的群" VerticalAlignment="Top"/>
+        Title="Pcrbot设置" Height="420.866" Width="412.32">
+    <Grid Margin="0,0,3.6,1.2">
+        <Button Content="保存" HorizontalAlignment="Left" Margin="309,341,0,0" VerticalAlignment="Top" Width="56" Click="Button_Click"/>
         <Button Content="查看日志" HorizontalAlignment="Left" Margin="229,341,0,0" VerticalAlignment="Top" Width="75" RenderTransformOrigin="-0.067,0.961" Click="Button_Click_1"/>
-        <TextBlock HorizontalAlignment="Left" Margin="218,32,0,0" TextWrapping="Wrap" Text="指令前缀" VerticalAlignment="Top"/>
-        <TextBox HorizontalAlignment="Left" Height="15" Margin="271,32,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" Name="pcrbotKey"/>
-        <CheckBox Content="自动保存数据" HorizontalAlignment="Left" Margin="218,10,0,0" VerticalAlignment="Top" Name="SaveDatPre"/>
-        <TextBox HorizontalAlignment="Left" Height="30" Margin="279,52,0,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top" Width="86" Name="maxMember" />
-        <TextBlock HorizontalAlignment="Left" Margin="218,52,0,0" TextWrapping="Wrap" Text="最多同时出刀成员数" VerticalAlignment="Top" Width="61"/>
-        <ListBox HorizontalAlignment="Left" Height="100" Margin="10,104,0,0" VerticalAlignment="Top" Width="355" Name="strList" SelectionChanged="StrList_SelectionChanged"/>
-        <TextBox HorizontalAlignment="Left" Height="43" Margin="10,209,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="294" Name="modifyText"/>
-        <Button Content="修改" HorizontalAlignment="Left" Margin="309,209,0,0" VerticalAlignment="Top" Width="56" Height="19" Name="isModify" Click="IsModify_Click"/>
-        <Button Content="重置" HorizontalAlignment="Left" Margin="309,233,0,0" VerticalAlignment="Top" Width="56" Height="19" Click="Button_Click_2"/>
         <TextBox HorizontalAlignment="Left" Height="19" Margin="10,341,0,0" TextWrapping="Wrap" Text="交流群：782125099" VerticalAlignment="Top" Width="120"/>
+        <Button Content="通用设置" HorizontalAlignment="Left" Height="20" Margin="10,10,0,0" VerticalAlignment="Top" Width="62" Click="Button_Click_3"/>
+        <Button Content="抽卡设置" HorizontalAlignment="Left" Margin="77,10,0,0" VerticalAlignment="Top" Width="63" Height="20" Click="Button_Click_4"/>
+        <Button Content="抽卡图片" HorizontalAlignment="Left" Margin="149,341,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_5"/>
+        <Grid Margin="10,44,10,49" Name="MySet">
+            <TextBox HorizontalAlignment="Left" Height="124" Margin="0,16,0,0" TextWrapping="Wrap" Text="请输入QQ号多个qq号请用逗号（英文）隔开" VerticalAlignment="Top" Width="88" TextChanged="TextBox_TextChanged" x:Name="rootMemberId"/>
+            <TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="管理员" VerticalAlignment="Top"/>
+            <TextBox HorizontalAlignment="Left" Height="124" Margin="93,16,0,0" TextWrapping="Wrap" Text="在哪些群使用，多个用逗号隔开" VerticalAlignment="Top" Width="88" x:Name="GroupId"/>
+            <TextBlock HorizontalAlignment="Left" Margin="93,0,0,0" TextWrapping="Wrap" Text="使用的群" VerticalAlignment="Top"/>
+            <TextBlock HorizontalAlignment="Left" Margin="198,20,0,0" TextWrapping="Wrap" Text="指令前缀" VerticalAlignment="Top"/>
+            <TextBox HorizontalAlignment="Left" Height="15" Margin="252,20,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="94" x:Name="pcrbotKey"/>
+            <CheckBox Content="自动保存数据" HorizontalAlignment="Left" Margin="199,4,0,0" VerticalAlignment="Top" x:Name="SaveDatPre"/>
+            <TextBox HorizontalAlignment="Left" Height="30" Margin="260,41,0,0" TextWrapping="Wrap" Text="1" VerticalAlignment="Top" Width="86" x:Name="maxMember" />
+            <TextBlock HorizontalAlignment="Left" Margin="198,41,0,0" TextWrapping="Wrap" Text="最多同时出刀成员数" VerticalAlignment="Top" Width="61"/>
+            <ListBox HorizontalAlignment="Left" Height="100" Margin="0,144,-0.4,0" VerticalAlignment="Top" Width="355" x:Name="strList" SelectionChanged="StrList_SelectionChanged"/>
+            <TextBox HorizontalAlignment="Left" Height="43" Margin="0,249,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="294" x:Name="modifyText"/>
+            <Button Content="修改" HorizontalAlignment="Left" Margin="299,249,-0.4,0" VerticalAlignment="Top" Width="56" Height="19" x:Name="isModify" Click="IsModify_Click"/>
+            <Button Content="重置" HorizontalAlignment="Left" Margin="299,273,-0.4,0" VerticalAlignment="Top" Width="56" Height="19" Click="Button_Click_2"/>
+            <TextBox HorizontalAlignment="Left" Height="18" Margin="283,70,0,0" TextWrapping="Wrap" Text="0" VerticalAlignment="Top" Width="61" x:Name="reMsgMaxLine"/>
+            <TextBlock HorizontalAlignment="Left" Margin="199,71,0,0" TextWrapping="Wrap" Text="回复最大行数" VerticalAlignment="Top" Height="18" Width="86"/>
+            <TextBlock HorizontalAlignment="Left" Margin="199,89,0,0" TextWrapping="Wrap" Text="每日井次数" VerticalAlignment="Top" Height="15"/>
+            <TextBox HorizontalAlignment="Left" Height="15" Margin="283,89,0,0" TextWrapping="Wrap" Text="-1" VerticalAlignment="Top" Width="61" x:Name="MaxLotteryTimes" />
+            <TextBlock HorizontalAlignment="Left" Margin="198,104,0,0" TextWrapping="Wrap" Text="随机图片触发" VerticalAlignment="Top" Width="81"/>
+            <TextBox HorizontalAlignment="Left" Height="13" Margin="283,104,0,0" TextWrapping="Wrap" Text="嘤嘤嘤" VerticalAlignment="Top" Width="60" Name="ImgRandom"/>
+            <Button Content="图片目录" HorizontalAlignment="Left" Margin="198,121,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_7"/>
+        </Grid>
+        <Grid Name="poolSet" Margin="0,0,-10.8,-10.2">
+            <TextBlock HorizontalAlignment="Left" Margin="10,35,0,0" TextWrapping="Wrap" Text="1星：" VerticalAlignment="Top"/>
+            <TextBlock HorizontalAlignment="Left" Margin="48,35,0,0" TextWrapping="Wrap" Text="权重：" VerticalAlignment="Top"/>
+            <TextBox HorizontalAlignment="Left" Height="15" Margin="84,35,0,0" TextWrapping="Wrap" Text="159000" VerticalAlignment="Top" Width="56" x:Name="star1c"/>
+            <TextBlock HorizontalAlignment="Left" Margin="10,50,0,0" TextWrapping="Wrap" Text="1星角色" VerticalAlignment="Top"/>
+            <TextBox HorizontalAlignment="Left" Height="46" Margin="10,65,0,0" TextWrapping="Wrap" Text="怜,尤加莉,碧,依里,未奏希,莉玛,铃莓,美咲,日和莉,胡桃" VerticalAlignment="Top" Width="355" x:Name="star1"/>
+            <TextBlock HorizontalAlignment="Left" Margin="10,117,0,0" TextWrapping="Wrap" Text="2星：" VerticalAlignment="Top"/>
+            <TextBlock HorizontalAlignment="Left" Margin="48,117,0,0" TextWrapping="Wrap" Text="权重：" VerticalAlignment="Top"/>
+            <TextBox HorizontalAlignment="Left" Height="15" Margin="84,117,0,0" TextWrapping="Wrap" Text="36000" VerticalAlignment="Top" Width="56" x:Name="star2c"/>
+            <TextBlock HorizontalAlignment="Left" Margin="10,131,0,0" TextWrapping="Wrap" Text="2星角色" VerticalAlignment="Top"/>
+            <TextBox HorizontalAlignment="Left" Height="44" Margin="10,146,0,0" TextWrapping="Wrap" Text="空花,美冬,雪,茜里,珠希,美美,真阳,忍,香织,千歌,深月,惠理子,宫子,栞,铃奈,铃,绫音,美里" VerticalAlignment="Top" Width="355" x:Name="star2"/>
+            <TextBlock HorizontalAlignment="Left" Margin="10,199,0,0" TextWrapping="Wrap" Text="3星：" VerticalAlignment="Top"/>
+            <TextBlock HorizontalAlignment="Left" Margin="48,199,0,0" TextWrapping="Wrap" Text="权重：" VerticalAlignment="Top"/>
+            <TextBox HorizontalAlignment="Left" Height="15" Margin="84,199,0,0" TextWrapping="Wrap" Text="5000" VerticalAlignment="Top" Width="56" x:Name="star3c"/>
+            <TextBlock HorizontalAlignment="Left" Margin="10,213,0,0" TextWrapping="Wrap" Text="3星角色" VerticalAlignment="Top"/>
+            <TextBox HorizontalAlignment="Left" Height="52" Margin="10,229,0,0" TextWrapping="Wrap" Text="初音,真琴,姬塔,咲恋,望,璃乃,妮侬,伊绪,秋乃,莫妮卡,静流,杏奈,纯,真步,亚里沙 ,镜华" VerticalAlignment="Top" Width="355" x:Name="star3"/>
+            <TextBlock HorizontalAlignment="Left" Margin="10,286,0,0" TextWrapping="Wrap" Text="tips：权重占比越大，抽到的概率就越大" VerticalAlignment="Top"/>
+            <TextBlock HorizontalAlignment="Left" Margin="40,301,0,0" TextWrapping="Wrap" Text="up池可以通过多个同名角色来实现" VerticalAlignment="Top"/>
+            <TextBlock HorizontalAlignment="Left" Margin="40,316,0,0" TextWrapping="Wrap" Text="不同角色用英文逗号隔开" VerticalAlignment="Top"/>
+        </Grid>
 
     </Grid>
 </Window>

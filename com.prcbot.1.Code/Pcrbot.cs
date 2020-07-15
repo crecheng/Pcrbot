@@ -45,7 +45,12 @@ namespace com.pcrbot._1.Code
         public bool SaveDatPer = false;
         private List<long> UnRemind = new List<long>();
         private CQGroupMessageEventArgs e;
+        public int reMsgMaxLine=-1;
+        public int lotteryTimes;
+        Lottery lottery = new Lottery();
         ClubFight clubFight = new ClubFight();
+        public string RandomImgStr = "嘤嘤嘤";
+        private string[] imgName;
 
         public Pcrbot()
         {
@@ -72,6 +77,7 @@ namespace com.pcrbot._1.Code
             logPath = setPath + "/"+GroupName + " " + GroupId+".txt";
             DatePath= setPath + "/" + GroupName + " " + GroupId + " 成员数据.txt";
             DatPath= setPath + "/" + GroupName + " " + GroupId + " 成员数据.dat";
+            lotteryTimes = -1;
             LoadDate();
         }
 
@@ -96,7 +102,12 @@ namespace com.pcrbot._1.Code
             {
                 if (isRun)
                 {
-                    ClubFightMsg(e);
+                    String msg = e.Message.Text;
+                    msg = msg.Substring(key.Length);
+                    String[] msgA = msg.Split(' ');
+                    ClubFightMsg(e,msgA);
+                    LotteryMsg(e, msgA);
+                    SengImg(e, msg);
                 }
                 if (rootMember.Contains(e.FromQQ.Id))
                 {
@@ -113,6 +124,36 @@ namespace com.pcrbot._1.Code
                 }
             }
             //hb(e);
+        }
+
+        private void SengImg(CQGroupMessageEventArgs e, string msg)
+        {
+            if (msg.Equals(RandomImgStr))
+            {
+                if (e.CQApi.IsAllowSendImage)
+                {
+                    if (Directory.Exists(@"data\image\pcrbotRandomPng")){
+                        if (imgName == null)
+                        {
+                            imgName = Directory.GetFiles(@"data\image\pcrbotRandomPng");
+                            for(int i=0;i<imgName.Length;i++)
+                            {
+                                string[] temps = imgName[i].Split('\\');
+                                imgName[i] = "pcrbotRandomPng\\"+temps[temps.Length - 1];
+                            }
+                        }
+                        if(imgName!=null)
+                        {
+                            string temp = imgName[MyRandom.NextTo(imgName.Length)];
+                            if (File.Exists("data\\image\\" + temp))
+                            {
+                                e.FromGroup.SendGroupMessage(CQApi.CQCode_Image(temp));
+                                e.Handler = true;
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         private bool MsgHaveKey(String s)
@@ -133,12 +174,19 @@ namespace com.pcrbot._1.Code
                 return true;
         }
 
-        private void ClubFightMsg(CQGroupMessageEventArgs e)
+        private void LotteryMsg(CQGroupMessageEventArgs e, string[] msgA)
         {
+            foreach (var answer in MyString.str)
+            {
+                if (answer.Value.Equals(msgA[0]))
+                {
+                    lottery.MsgHandle(msgA, answer.Key, e, this);
+                }
+            }
+        }
 
-            String msg = e.Message.Text;
-            msg = msg.Substring(key.Length);
-            String[] msgA = msg.Split(' ');
+        private void ClubFightMsg(CQGroupMessageEventArgs e,string[] msgA)
+        {
             if (Common.ModifyWindowsOpen && NeedChangeDate(msgA))
             {
                 e.FromGroup.SendGroupMessage("管理者正在操作数据，请稍等！");
@@ -219,6 +267,11 @@ namespace com.pcrbot._1.Code
                 targetBoss %= boss.Length;
                 tree.Clear();
             }
+        }
+
+        public void ChangePool(int s1c, string s1, int s2c, string s2, int s3c, string s3)
+        {
+            lottery.ChangePool(s1c, s1, s2c, s2, s3c, s3);
         }
 
         private void Record(CQGroupMessageEventArgs e, long qq,int damage)
@@ -365,7 +418,6 @@ namespace com.pcrbot._1.Code
                         if (str.Length >= 3)
                         {
                             key = str[2];
-
                         }
 
                     }
@@ -446,6 +498,26 @@ namespace com.pcrbot._1.Code
                     {
                         SaveDatPer= str[4].Equals("1");
                     }
+                    if (str.Length >= 6)
+                    {
+                        int.TryParse(str[5],out reMsgMaxLine);
+                    }
+                    if (str.Length >= 7)
+                    {
+                        int.TryParse(str[6], out lotteryTimes);
+                    }
+                    if (str.Length >= 12)
+                    {
+                        int.TryParse(str[7],out int star1c);
+                        string star1 = str[8];
+
+                        int.TryParse(str[9],out int star2c);
+                        string star2 = str[10];
+
+                        int.TryParse(str[11],out int star3c);
+                        string star3 = str[12];
+                        lottery.ChangePool(star1c, star1, star2c, star2, star3c, star3);
+                    }
                 }
             }
 
@@ -519,7 +591,8 @@ namespace com.pcrbot._1.Code
         private int Day()
         {
             var now = DateTime.Now;
-            return now.Day - (now.Hour < 5 ? 1 : 0);
+            var newnow = now.AddHours(-5);
+            return newnow.Day;
         }
 
         private void SaveDate(CQGroupMessageEventArgs e=null,bool flag=true,bool flag1=false)
@@ -694,12 +767,36 @@ namespace com.pcrbot._1.Code
                     case "催刀":
                         Remind();
                         break;
+                    case "删刀":
+                        DelAttack();
+                        break;
                 }
             }
 
             void SendMsg(string s)
             {
-                e.FromGroup.SendGroupMessage(s);
+                if(s.Length<=100||p.reMsgMaxLine<=3)
+                    e.FromGroup.SendGroupMessage(s);
+                else
+                {
+                    var tempstr = s.Split('\n');
+                    StringBuilder temps = new StringBuilder();
+                    for(int i = 0,j=0 ; i < tempstr.Length; i++)
+                    {
+                        if (j <= p.reMsgMaxLine)
+                        {
+                            temps.Append(tempstr[i] + "\n");
+                            j++;
+                        }
+                        else
+                        {
+                            e.FromGroup.SendGroupMessage(temps);
+                            temps.Clear();
+                            temps.Append(tempstr[i]+"\n");
+                            j = 1;
+                        }
+                    }
+                }
             }
 
             void BossDateInput()
@@ -1140,17 +1237,17 @@ namespace com.pcrbot._1.Code
                             s += d.Value.LookDateRoot();
                         }
                     }
-                    e.FromGroup.SendGroupMessage(s);
+                    SendMsg(s);
                 }
                 else
                 {
                     if (p.memberDate.ContainsKey(e.FromQQ.Id))
                     {
-                        e.FromGroup.SendGroupMessage(p.memberDate[e.FromQQ.Id].LookDate(msg.Length >= 2));
+                        SendMsg(p.memberDate[e.FromQQ.Id].LookDate(msg.Length >= 2));
                     }
                     else
                     {
-                        e.FromGroup.SendGroupMessage(MyString.str["暂无你的出刀数据!"]);
+                        SendMsg(MyString.str["暂无你的出刀数据!"]);
                     }
                 }
             }
@@ -1281,7 +1378,6 @@ namespace com.pcrbot._1.Code
                             }
                             else
                             {
-                                p.BossBloodSub(damage);
                                 string temp = p.MemberName(e, qqid) + MyString.str[" 已完成挑战boss（手动输入）"];
                                 e.FromGroup.SendGroupMessage(temp + "\n" + BossNow() );
                                 p.SaveLog(temp + " " + damage);
@@ -1444,23 +1540,63 @@ namespace com.pcrbot._1.Code
             {
                 if (p.isRoot(e.FromQQ.Id))
                 {
-                    string s = MyString.str["管理催刀了！"] + "\n";
+                    StringBuilder s = new StringBuilder(MyString.str["管理催刀了！"] + "\n");
                     foreach(var qq in p.memberDate)
                     {
                         if (qq.Value.memberDateDay.ContainsKey(p.Day()))
                         {
                             if (qq.Value.memberDateDay[p.Day()].attackTimes < 3)
                             {
-                                s+=CQApi.CQCode_At(qq.Key);
+                                s.Append(CQApi.CQCode_At(qq.Key));
                             }
                         }
                         else
                         {
-                            s += CQApi.CQCode_At(qq.Key);
+                            s.Append(CQApi.CQCode_At(qq.Key));
                         }
                     }
-                    s += "\n" + "请以上成员立即出刀!";
-                    SendMsg(s);
+                    s.Append("\n");
+                    s.Append(MyString.str["请以上成员立即出刀!"]);
+                    SendMsg(s.ToString());
+                }
+            }
+
+            void DelAttack()
+            {
+                long qq = GetAtQQ();
+                int tDay,tCount;
+                if(qq!=0&&int.TryParse(msg[1],out tDay)&&int.TryParse(msg[2],out tCount))
+                {
+                    if (p.memberDate.ContainsKey(qq))
+                    {
+                        if (p.memberDate[qq].memberDateDay.ContainsKey(tDay))
+                        {
+                            int dateCount = p.memberDate[qq].memberDateDay[tDay].damage.Count;
+                            if ( dateCount>= tCount - 1)
+                            {
+                                p.memberDate[qq].memberDateDay[tDay].damage.RemoveAt(tCount - 1);
+                                p.memberDate[qq].memberDateDay[tDay].attackTimes--;
+                                SendMsg("删刀成功！");
+                                p.SaveDate(e);
+                            }
+                            else
+                            {
+                                SendMsg("该成员当天只有"+dateCount+"刀！");
+                            }
+                        }
+                        else
+                        {
+                            SendMsg("该成员当天没有出刀数据！");
+                        }
+                    }
+                    else
+                    {
+                        SendMsg("该成员不在公会！");
+                    }
+                }
+                else
+                {
+                    SendMsg("格式错误，格式为：删刀 日期 第几刀 at人");
                 }
             }
 
@@ -1482,6 +1618,72 @@ namespace com.pcrbot._1.Code
             }
         }
 
+        class Lottery
+        {
+            CQGroupMessageEventArgs e;
+            Pcrbot p;
+            private EggPool eggPool = new EggPool();
+            string[] msg;
+            public void MsgHandle(string[] msg, string answer, CQGroupMessageEventArgs e, Pcrbot p)
+            {
+                this.e = e;
+                this.p = p;
+                this.msg = msg;
+                switch (answer)
+                {
+                    case "抽一井":
+                        GetOneWell(e.CQApi.IsAllowSendImage);
+                        break;
+                }
+            }
+
+            public void ChangePool(int s1c,string s1,int s2c,string s2,int s3c,string s3)
+            {
+                eggPool.ChangePool(s1c, s1, s2c, s2, s3c, s3);
+            }
+
+            void GetOneWell(bool sendImg)
+            {
+                long qq = e.FromQQ.Id;
+                if (p.lotteryTimes == -1)
+                    e.FromGroup.SendGroupMessage(CQApi.CQCode_At(qq), eggPool.GetOneWell(sendImg));
+                else if (p.lotteryTimes == 0)
+                    return;
+                else
+                {
+                    if (p.memberDate.ContainsKey(qq))
+                    {
+                        if (p.memberDate[qq].lotteryDay == p.Day())
+                        {
+                            if (p.memberDate[qq].lotteryTimes < p.lotteryTimes)
+                            {
+                                e.FromGroup.SendGroupMessage(CQApi.CQCode_At(qq), "\n" + eggPool.GetOneWell(sendImg));
+                                p.memberDate[qq].lotteryTimes++;
+                            }
+                            else
+                            {
+                                e.FromGroup.SendGroupMessage(CQApi.CQCode_At(qq), "\n" + MyString.str["次数不足，明天再来！"]);
+                            }
+                        }
+                        else
+                        {
+                            p.memberDate[qq].lotteryDay = p.Day();
+                            p.memberDate[qq].lotteryTimes = 1;
+                            e.FromGroup.SendGroupMessage(CQApi.CQCode_At(qq), "\n" + eggPool.GetOneWell(sendImg));
+                        }
+                    }
+                    else
+                    {
+                        p.memberDate.Add(qq, new MemberDate(qq, p.MemberName(e, qq)));
+                        p.memberDate[qq].lotteryDay = p.Day();
+                        p.memberDate[qq].lotteryTimes++;
+                        e.FromGroup.SendGroupMessage(CQApi.CQCode_At(qq), "\n" + eggPool.GetOneWell(sendImg));
+                    }
+                }
+
+            }
+
+        }
     }
 
     [Serializable]
@@ -1520,6 +1722,8 @@ namespace com.pcrbot._1.Code
     {
         public string name { get; set; }
         public long id { get; set; }
+        public int lotteryDay { get; set; }
+        public int lotteryTimes { get; set; }
         public Dictionary<int,MemberDateDay> memberDateDay { get; set; }
         public MemberDate()
         {
@@ -1530,6 +1734,7 @@ namespace com.pcrbot._1.Code
             memberDateDay = new Dictionary<int, MemberDateDay>();
             id = qq;
             this.name = name;
+            lotteryTimes = 0;
         }
         public long TotalDmg()
         {
